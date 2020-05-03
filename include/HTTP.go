@@ -7,11 +7,9 @@ import (
 	"strings"
 )
 
-var client *http.Client
-
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		AuthHeader := r.Header.Get("Auth")
+		AuthHeader := r.Header.Get("Authorization")
 		if AuthHeader == os.Getenv("AUTH_HASH") {
 			next.ServeHTTP(w, r)
 		} else {
