@@ -61,8 +61,10 @@ func DoNoticesInJsonTest(run_type string) {
 			if DBNotices == nil {
 				var NoticeError TestError
 				NoticeError.TestId = test.ID
+				NoticeError.Type = "GetNoticesFromPMIError"
 				NoticeError.Message = "Playlist :'" + playlist.Title + "' error getting Notices"
 				Db.Create(&NoticeError)
+				test.ErrorCount += 1
 				continue
 			}
 
@@ -70,8 +72,10 @@ func DoNoticesInJsonTest(run_type string) {
 			if ServerNotices == nil {
 				var NoticeError TestError
 				NoticeError.TestId = test.ID
+				NoticeError.Type = "GetNoticesFromServerError"
 				NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + ") error getting json From Server"
 				Db.Create(&NoticeError)
+				test.ErrorCount += 1
 				continue
 			}
 
