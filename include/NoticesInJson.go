@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var NoticeInJsonTestIsRunning bool
+
 type Test struct {
 	gorm.Model
 	Type        string
@@ -27,10 +29,15 @@ type TestError struct {
 }
 
 func NoticesInJsonTest(t time.Time) {
-	DoNoticesInJsonTest("auto")
+	if !NoticeInJsonTestIsRunning {
+		DoNoticesInJsonTest("auto")
+	}
 }
 
 func DoNoticesInJsonTest(run_type string) {
+
+	NoticeInJsonTestIsRunning = true
+
 	start := time.Now()
 
 	var test Test
@@ -116,5 +123,7 @@ func DoNoticesInJsonTest(run_type string) {
 
 	test.Duration = int(time.Since(start).Seconds())
 	Db.Model(&Test{}).Update(&test)
+
+	NoticeInJsonTestIsRunning = false
 
 }
