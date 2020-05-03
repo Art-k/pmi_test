@@ -1,7 +1,6 @@
 package include
 
 import (
-	"github.com/jinzhu/gorm"
 	"log"
 	"os"
 	"strconv"
@@ -9,24 +8,6 @@ import (
 )
 
 var NoticeInJsonTestIsRunning bool
-
-type Test struct {
-	gorm.Model
-	Type        string
-	Status      string
-	Description string
-	Duration    int
-	ErrorCount  int
-	RunType     string
-}
-
-type TestError struct {
-	gorm.Model
-	TestId      uint
-	Type        string
-	Message     string
-	Description string
-}
 
 func NoticesInJsonTest(t time.Time) {
 	if !NoticeInJsonTestIsRunning {
