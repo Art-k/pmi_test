@@ -11,9 +11,10 @@ var client *http.Client
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//params := mux.Vars(r)
-		//INCOM_PASS := params["pass"]
-		next.ServeHTTP(w, r)
+		AuthHeader := r.Header.Get("Auth")
+		if AuthHeader == os.Getenv("AUTH_HASH") {
+			next.ServeHTTP(w, r)
+		}
 	})
 }
 
