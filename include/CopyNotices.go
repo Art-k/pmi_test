@@ -87,7 +87,9 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}()
-		ResponseOK(w, nil)
+
+		response, _ := json.Marshal(notices)
+		ResponseOK(w, response)
 	}
 }
 
