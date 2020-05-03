@@ -90,7 +90,7 @@ func DoNoticesInJsonTest(run_type string) {
 						var NoticeError TestError
 						NoticeError.TestId = test.ID
 						NoticeError.Type = "NoticeJSONError"
-						NoticeError.Message = "Playlist ID : " + strconv.Itoa(playlist.Id) + ", Notice ID : " + strconv.Itoa(DBNotice.Id) +
+						NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + "), Notice ID : " + strconv.Itoa(DBNotice.Id) +
 							" is not found in JSON, link to notice " + linktonotice
 
 						Db.Create(&NoticeError)
