@@ -98,6 +98,8 @@ func DoNoticesInJsonTest(run_type string) {
 					}
 				}
 			}
+
+			test.PlayListsTested++
 		}
 		test.Status = "Completed"
 	}

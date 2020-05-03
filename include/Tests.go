@@ -9,12 +9,13 @@ import (
 
 type Test struct {
 	gorm.Model
-	Type        string
-	Status      string
-	Description string
-	Duration    int
-	ErrorCount  int
-	RunType     string
+	Type            string
+	Status          string
+	Description     string
+	Duration        int
+	ErrorCount      int
+	RunType         string
+	PlayListsTested int
 }
 
 type TestError struct {
