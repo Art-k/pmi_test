@@ -300,6 +300,7 @@ func PostNoticesToPlaylist(notice TypeNotice, user, pass string) TypeNotice {
 		Pdf              bool   `json:"pdf"`
 		CategoryId       uint   `json:"categoryId"`
 		BackGroundFileId int64  `json:"background_file_id"`
+		BackGroundColor  string `json:"background_color"`
 	}
 
 	var newNotice PostNotice
@@ -308,6 +309,7 @@ func PostNoticesToPlaylist(notice TypeNotice, user, pass string) TypeNotice {
 	newNotice.Pdf = notice.Pdf
 	newNotice.CategoryId = notice.CategoryId
 	newNotice.BackGroundFileId = notice.BackgroundFileId
+	newNotice.BackGroundColor = notice.BackgroundColor
 
 	requestBody, err := json.Marshal(newNotice)
 	if err != nil {

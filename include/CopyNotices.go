@@ -72,19 +72,22 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 		P := os.Getenv("PASSWORD")
 
 		Db.Where("task_id = ?", params["id"]).Find(&notices)
-		for _, notice := range notices {
-			err := DeleteNoticeById(notice.NoticesId, U, P)
-			if err != nil {
-				log.Println(err)
-			} else {
-				Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
-				var rec CopyNoticesToPlaylistsTask
-				Db.Where("id = ?", notice.TaskId).Find(&rec)
-				rec.Deleted++
-				Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
-				time.Sleep(1 * time.Second)
+		go func() {
+			for _, notice := range notices {
+				err := DeleteNoticeById(notice.NoticesId, U, P)
+				if err != nil {
+					log.Println(err)
+				} else {
+					Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
+					var rec CopyNoticesToPlaylistsTask
+					Db.Where("id = ?", notice.TaskId).Find(&rec)
+					rec.Deleted++
+					Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
+					time.Sleep(1 * time.Second)
+				}
 			}
-		}
+		}()
+		ResponseOK(w, nil)
 	}
 }
 
