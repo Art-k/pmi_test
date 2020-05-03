@@ -137,6 +137,7 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 				destination.Notice = string(cn_str)
 				Db.Model(&DestinationPlaylists{}).Update(&destination)
 				incTask.Copied++
+				time.Sleep(2 * time.Second)
 				Db.Model(&CopyNoticesToPlaylistsTask{}).Update(incTask)
 			}
 
