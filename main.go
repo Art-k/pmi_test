@@ -36,6 +36,8 @@ func main() {
 		&inc.Token{},
 		&inc.Test{},
 		&inc.TestError{},
+		&inc.CopyNoticesToPlaylistsTask{},
+		&inc.DestinationPlaylists{},
 	)
 
 	if os.Getenv("MODE") == "DEBUG" {
@@ -70,6 +72,9 @@ func handleHTTP() {
 
 	r.HandleFunc("/test", inc.GetTestsStatistics)
 	r.HandleFunc("/test/{id}", inc.GetTestStatistics)
+	r.HandleFunc("/copy-notes", inc.CopyNotes)
+	r.HandleFunc("/copy-notes/{id}", inc.CopyNotesTask)
+	r.HandleFunc("/playlists-array", inc.GetAllPlaylistsAsArrayOfId)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {

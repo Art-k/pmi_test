@@ -149,7 +149,7 @@ func GetAllPlaylists(user, pass string) []TypePlaylist {
 type TypeSchedule struct {
 	ActivateFrom    string `json:"activateFrom"`
 	ActivateTo      string `json:"activateTo"`
-	Duration        uint   `json:"duration"`
+	Duration        int    `json:"duration"`
 	Hours           string `json:"hours"`
 	Days            string `json:"days"`
 	WeekDays        string `json:"weekdays"`
@@ -175,7 +175,7 @@ type TypeNotice struct {
 	Pdf              bool         `json:"pdf"`
 	CategoryId       uint         `json:"categoryId"`
 	BackgroundColor  string       `json:"background_color"`
-	BackgroundFileId uint         `json:"background_file_id"`
+	BackgroundFileId int64        `json:"background_file_id"`
 	CreatedBy        uint         `json:"createdBy"`
 	CreatedByUser    TypeUser     `json:"createdByUser"`
 	CreatedAt        string       `json:"createdAt"`
@@ -284,4 +284,107 @@ func GetServerPlaylistJson(playlist_id int) []TypeServerNotice {
 
 	return response.Entry
 
+}
+
+func PostNoticesToPlaylist(notice TypeNotice, user, pass string) TypeNotice {
+
+	client := &http.Client{}
+	var New_Notice TypeNotice
+
+	AnnouncementToken := GetServiceToken("Announcements", user, pass)
+	AnnouncementURL := GetServiceURL("Announcements")
+
+	type PostNotice struct {
+		Title            string `json:"title"`
+		Content          string `json:"content"`
+		Pdf              bool   `json:"pdf"`
+		CategoryId       uint   `json:"categoryId"`
+		BackGroundFileId int64  `json:"background_file_id"`
+	}
+
+	var newNotice PostNotice
+	newNotice.Title = notice.Title
+	newNotice.Content = notice.Content
+	newNotice.Pdf = notice.Pdf
+	newNotice.CategoryId = notice.CategoryId
+
+	requestBody, err := json.Marshal(newNotice)
+	if err != nil {
+		return New_Notice
+	}
+	request, err := http.NewRequest("POST", AnnouncementURL+"/announcement", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return New_Notice
+	}
+	request.Header.Set("Authorization", "Bearer "+AnnouncementToken)
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return New_Notice
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return New_Notice
+	}
+
+	log.Println(string(body))
+	json.Unmarshal(body, &New_Notice)
+
+	return New_Notice
+}
+
+func AssignPlaylists(playlist_id, notice_id, duration int, activate_from, activate_to string, user, pass string) TypeNotice {
+
+	client := &http.Client{}
+	AnnouncementToken := GetServiceToken("Announcements", user, pass)
+	AnnouncementURL := GetServiceURL("Announcements")
+	var New_Notice TypeNotice
+
+	type requestBody struct {
+		NoExpire     int    `json:"noExpire"`
+		ActivateFrom string `json:"activateFrom"`
+		ActivateTo   string `json:"activateTo"`
+		Days         string `json:"days"`
+		Duration     int    `json:"duration"`
+		Hours        string `json:"hours"`
+		Month        string `json:"month"`
+		PlaylistId   []int  `json:"playlistId"`
+		Weekdays     string `json:"weekdays"`
+		Expire       int    `json:"expire"`
+	}
+
+	var rBody requestBody
+	rBody.Duration = duration
+	rBody.ActivateTo = activate_to
+	rBody.ActivateFrom = activate_from
+	rBody.PlaylistId = append(rBody.PlaylistId, playlist_id)
+	rBody.Expire = 1
+
+	var r_Body []requestBody
+	r_Body = append(r_Body, rBody)
+
+	request_body, err := json.Marshal(r_Body)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	request, err := http.NewRequest("POST", AnnouncementURL+"/announcement/"+strconv.Itoa(notice_id)+"/playlist", bytes.NewBuffer(request_body))
+	if err != nil {
+		return New_Notice
+	}
+	request.Header.Set("Authorization", "Bearer "+AnnouncementToken)
+
+	resp, _ := client.Do(request)
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println(string(body))
+	return New_Notice
 }
