@@ -33,7 +33,13 @@ func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 		response, _ := json.Marshal(tests)
 		ResponseOK(w, response)
 	case "POST":
-		DoNoticesInJsonTest("Run Over HTTP")
+		if !NoticeInJsonTestIsRunning {
+			go DoNoticesInJsonTest("Run Over HTTP")
+		}
+		var test Test
+		Db.Last(&test)
+		response, _ := json.Marshal(test)
+		ResponseOK(w, response)
 	}
 }
 
