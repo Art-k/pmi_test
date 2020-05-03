@@ -54,6 +54,8 @@ func DoNoticesInJsonTest(run_type string) {
 				Db.Create(&NoticeError)
 				test.ErrorCount += 1
 				continue
+			} else {
+				log.Println("Found in DB " + strconv.Itoa(len(DBNotices)) + " notices")
 			}
 
 			ServerNotices := GetServerPlaylistJson(playlist.Id)
@@ -65,6 +67,8 @@ func DoNoticesInJsonTest(run_type string) {
 				Db.Create(&NoticeError)
 				test.ErrorCount += 1
 				continue
+			} else {
+				log.Println("Found on server " + strconv.Itoa(len(ServerNotices)) + " notices")
 			}
 
 			var NoticeFound bool
