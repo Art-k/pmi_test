@@ -44,7 +44,7 @@ func main() {
 		go func() {
 
 			var interval int
-			interval_str := os.Getenv("SYNCRONIZATION_INTERVAL")
+			interval_str := os.Getenv("TEST_INTERVAL")
 			if interval_str != "" {
 				interval, err = strconv.Atoi(interval_str)
 				if err != nil {
