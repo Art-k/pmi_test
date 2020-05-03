@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -29,6 +30,7 @@ type CopyNoticesToPlaylistsTask struct {
 	Status           string
 	Duration         int
 	Copied           int
+	Deleted          int
 }
 
 type DestinationPlaylists struct {
@@ -62,6 +64,26 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 		Db.Where("task_id = ?", params["id"]).Find(&destination)
 		response, _ := json.Marshal(destination)
 		ResponseOK(w, response)
+
+	case "DELETE":
+		var notices []DestinationPlaylists
+
+		U := os.Getenv("USER")
+		P := os.Getenv("PASSWORD")
+
+		Db.Where("task_id = ?", params["id"]).Find(&notices)
+		for _, notice := range notices {
+			err := DeleteNoticeById(notice.NoticesId, U, P)
+			if err != nil {
+				log.Println(err)
+			} else {
+				Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
+				var rec CopyNoticesToPlaylistsTask
+				Db.Where("id = ?", notice.TaskId).Find(&rec)
+				rec.Deleted++
+				Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
+			}
+		}
 	}
 }
 
@@ -96,30 +118,29 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 		incTask.SourceNoticeId = incomingData.SourceNoticeId
 		incTask.SourceNotice = ""
 
-		go func() {
-			U := os.Getenv("USER")
-			P := os.Getenv("PASSWORD")
+		U := os.Getenv("USER")
+		P := os.Getenv("PASSWORD")
 
-			AllNotices := GetAllNoticesByPlaylist(incTask.SourcePlaylistId, U, P)
+		AllNotices := GetAllNoticesByPlaylist(incTask.SourcePlaylistId, U, P)
 
-			for _, notice := range AllNotices {
-				if notice.Id == incTask.SourceNoticeId {
-					notice_str, err := json.Marshal(&notice)
-					if err != nil {
-						incTask.Status = "Error, source notice can't be saved as a string"
-						ResponseBadRequest(w, err, incTask.Status)
-					}
-					incTask.SourceNotice = string(notice_str)
-					SourceNotice = notice
-					break
+		for _, notice := range AllNotices {
+			if notice.Id == incTask.SourceNoticeId {
+				notice_str, err := json.Marshal(&notice)
+				if err != nil {
+					incTask.Status = "Error, source notice can't be saved as a string"
+					ResponseBadRequest(w, err, incTask.Status)
 				}
+				incTask.SourceNotice = string(notice_str)
+				SourceNotice = notice
+				break
 			}
+		}
 
-			Db.Create(&incTask)
-			if incTask.Status != "" {
-				ResponseBadRequest(w, nil, incTask.Status)
-			}
-
+		Db.Create(&incTask)
+		if incTask.Status != "" {
+			ResponseBadRequest(w, nil, incTask.Status)
+		}
+		go func() {
 			for _, pl_id := range incomingData.DestinationPlayLists {
 				var destination DestinationPlaylists
 				destination.TaskId = incTask.ID
