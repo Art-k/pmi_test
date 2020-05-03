@@ -14,6 +14,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		AuthHeader := r.Header.Get("Auth")
 		if AuthHeader == os.Getenv("AUTH_HASH") {
 			next.ServeHTTP(w, r)
+		} else {
+			ResponseNotFound(w)
 		}
 	})
 }
