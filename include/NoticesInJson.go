@@ -49,6 +49,7 @@ func DoNoticesInJsonTest(run_type string) {
 			}
 
 			if IfExists(ignoredPlaylists, playlist.Id) {
+				test.PlayListsIgnored++
 				continue
 			}
 
