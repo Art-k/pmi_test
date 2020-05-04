@@ -19,7 +19,7 @@ const Version = "0.0.1"
 
 func main() {
 
-	inc.Db, inc.Err = gorm.Open("sqlite3", "pmi_tests.db")
+	inc.Db, inc.Err = gorm.Open("sqlite3", "pmi.db")
 	if inc.Err != nil {
 		panic("ERROR failed to connect database")
 	}

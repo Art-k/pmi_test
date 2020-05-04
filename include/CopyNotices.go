@@ -35,10 +35,12 @@ type CopyNoticesToPlaylistsTask struct {
 
 type DestinationPlaylists struct {
 	gorm.Model
-	TaskId     uint
-	PlaylistId int
-	NoticesId  int
-	Notice     string
+	TaskId         uint
+	PlaylistId     int
+	NoticesId      int
+	Notice         string
+	DeletedMessage string
+	IsDeleted      bool
 }
 
 func GetAllPlaylistsAsArrayOfId(w http.ResponseWriter, r *http.Request) {
@@ -59,10 +61,27 @@ func GetAllPlaylistsAsArrayOfId(w http.ResponseWriter, r *http.Request) {
 func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	switch r.Method {
+
 	case "GET":
 		var destination []DestinationPlaylists
 		Db.Where("task_id = ?", params["id"]).Find(&destination)
-		response, _ := json.Marshal(destination)
+
+		type OneTaskResponse struct {
+			Total   int
+			Deleted int
+			Records []DestinationPlaylists
+		}
+
+		var oneTaskResponse OneTaskResponse
+		oneTaskResponse.Total = len(destination)
+		oneTaskResponse.Records = destination
+		for _, rec := range destination {
+			if rec.IsDeleted {
+				oneTaskResponse.Deleted++
+			}
+		}
+
+		response, _ := json.Marshal(oneTaskResponse)
 		ResponseOK(w, response)
 
 	case "DELETE":
@@ -74,11 +93,14 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 		Db.Where("task_id = ?", params["id"]).Find(&notices)
 		go func() {
 			for _, notice := range notices {
-				err := DeleteNoticeById(notice.NoticesId, U, P)
+				msg, err := DeleteNoticeById(notice.NoticesId, U, P)
 				if err != nil {
 					log.Println(err)
 				} else {
-					Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
+					notice.DeletedMessage = msg
+					notice.IsDeleted = true
+					Db.Model(&DestinationPlaylists{}).Where("id = ?", notice.ID).Update(&notice)
+					//Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
 					var rec CopyNoticesToPlaylistsTask
 					Db.Where("id = ?", notice.TaskId).Find(&rec)
 					rec.Deleted++

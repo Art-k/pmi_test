@@ -392,7 +392,7 @@ func AssignPlaylists(playlist_id, notice_id, duration int, activate_from, activa
 	return New_Notice
 }
 
-func DeleteNoticeById(notice_id int, user, pass string) error {
+func DeleteNoticeById(notice_id int, user, pass string) (string, error) {
 
 	client := &http.Client{}
 	AnnouncementToken := GetServiceToken("Announcements", user, pass)
@@ -401,14 +401,18 @@ func DeleteNoticeById(notice_id int, user, pass string) error {
 	request, err := http.NewRequest("DELETE", AnnouncementURL+"/announcement/"+strconv.Itoa(notice_id)+"/clear", nil)
 	if err != nil {
 		log.Println(err)
-		return err
+		return "", err
 	} else {
 		request.Header.Set("Authorization", "Bearer "+AnnouncementToken)
-		_, err := client.Do(request)
+		resp, err := client.Do(request)
 		if err != nil {
 			log.Println(err)
-			return err
+			return "", err
 		}
-		return nil
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		log.Println(string(body))
+		return string(body), nil
 	}
 }
