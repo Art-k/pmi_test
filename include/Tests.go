@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"time"
 )
 
 type Test struct {
@@ -53,6 +54,7 @@ func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 		if !NoticeInJsonTestIsRunning {
 			go DoNoticesInJsonTest("Run Over HTTP")
 		}
+		time.Sleep(1 * time.Second)
 		var test Test
 		Db.Last(&test)
 		response, _ := json.Marshal(test)
