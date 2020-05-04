@@ -118,6 +118,15 @@ func DoNoticesInJsonTest(run_type string) {
 	test.Duration = int(time.Since(start).Seconds())
 	Db.Model(&Test{}).Update(&test)
 
+	if test.ErrorCount != 0 {
+		PostTelegrammMessage("Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below.")
+		var NoticeErrors []TestError
+		Db.Where("test_id = ?", test.ID).Find(&NoticeErrors)
+		for ind, rec := range NoticeErrors {
+			Msg := strconv.Itoa(ind) + ". " + rec.Message
+			PostTelegrammMessage(Msg)
+		}
+	}
 	NoticeInJsonTestIsRunning = false
 
 }

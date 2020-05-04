@@ -64,6 +64,23 @@ func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 
 func IgnoredPlayLists(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case "DELETE":
+
+		type IncomingData struct {
+			PlayListId int
+		}
+
+		var incomingData IncomingData
+		err := json.NewDecoder(r.Body).Decode(&incomingData)
+		if err != nil {
+			ResponseBadRequest(w, err, "")
+			return
+		}
+		var rec IgnoredPlaylist
+		Db.Where("play_list_id = ?", incomingData.PlayListId).Delete(&rec)
+
+		response, _ := json.Marshal(rec)
+		ResponseOK(w, response)
 
 	case "GET":
 
