@@ -123,7 +123,7 @@ func DoNoticesInJsonTest(run_type string) {
 		var NoticeErrors []TestError
 		Db.Where("test_id = ?", test.ID).Find(&NoticeErrors)
 		for ind, rec := range NoticeErrors {
-			Msg := strconv.Itoa(ind) + ". " + rec.Message
+			Msg := strconv.Itoa(ind+1) + ". " + rec.Message
 			PostTelegrammMessage(Msg)
 		}
 	}
