@@ -65,7 +65,7 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 
 	case "GET":
 		var destination []DestinationPlaylists
-		Db.Where("task_id = ?", params["id"]).Order("created_at asc").Find(&destination)
+		Db.Where("task_id = ?", params["id"]).Order("notices_id asc").Find(&destination)
 
 		type OneTaskResponse struct {
 			Total   int
@@ -92,10 +92,11 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 		U := os.Getenv("USER")
 		P := os.Getenv("PASSWORD")
 
-		Db.Where("task_id = ?", params["id"]).Find(&notices)
-		go func(ID string) {
+		Db.Where("task_id = ?", params["id"]).Order("notices_id asc").Find(&notices)
+
+		go func(ID string, list []DestinationPlaylists) {
 			PostTelegrammMessage(ID + " task DELETE is started")
-			for _, notice := range notices {
+			for _, notice := range list {
 				msg, err := DeleteNoticeById(notice.NoticesId, U, P)
 				if err != nil {
 					log.Println(err)
@@ -112,7 +113,8 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			PostTelegrammMessage(ID + " task DELETE is completed successfully")
-		}(params["id"])
+		}(params["id"], notices)
+
 		response, _ := json.Marshal(notices)
 		ResponseOK(w, response)
 	}
@@ -172,21 +174,23 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 			ResponseBadRequest(w, nil, incTask.Status)
 		}
 
-		go func() {
+		go func(Source_Notice TypeNotice, Dplaylists []int) {
+
 			PostTelegrammMessage(strconv.Itoa(int(incTask.ID)) + " task COPY is started")
-			for _, pl_id := range incomingData.DestinationPlayLists {
+
+			for _, pl_id := range Dplaylists {
 				var destination DestinationPlaylists
 				destination.TaskId = incTask.ID
 				destination.PlaylistId = pl_id
-				CopiedNotice := PostNoticesToPlaylist(SourceNotice, U, P)
+				CopiedNotice := PostNoticesToPlaylist(Source_Notice, U, P)
 				cn_str, _ := json.Marshal(CopiedNotice)
 				destination.NoticesId = CopiedNotice.Id
 				Db.Create(&destination)
 				if incTask.CopySchedule {
-					CopiedNotice = AssignPlaylists(pl_id, CopiedNotice.Id, SourceNotice.Schedule.Duration,
-						SourceNotice.Schedule.ActivateFrom, SourceNotice.Schedule.ActivateTo, U, P)
+					CopiedNotice = AssignPlaylists(pl_id, CopiedNotice.Id, Source_Notice.Schedule.Duration,
+						Source_Notice.Schedule.ActivateFrom, Source_Notice.Schedule.ActivateTo, U, P)
 				} else {
-					CopiedNotice = AssignPlaylists(pl_id, CopiedNotice.Id, SourceNotice.Schedule.Duration, incTask.ActivateFrom, incTask.ActivateTo, U, P)
+					CopiedNotice = AssignPlaylists(pl_id, CopiedNotice.Id, Source_Notice.Schedule.Duration, incTask.ActivateFrom, incTask.ActivateTo, U, P)
 				}
 				destination.Notice = string(cn_str)
 				Db.Model(&DestinationPlaylists{}).Update(&destination)
@@ -198,7 +202,9 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 			incTask.Duration = int(time.Since(start).Seconds())
 			Db.Model(&CopyNoticesToPlaylistsTask{}).Update(&incTask)
 			PostTelegrammMessage(strconv.Itoa(int(incTask.ID)) + " task COPY is completed successfully")
-		}()
+
+		}(SourceNotice, incomingData.DestinationPlayLists)
+
 		response, _ := json.Marshal(incTask)
 		ResponseOK(w, response)
 	}
