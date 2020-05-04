@@ -83,7 +83,7 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 					Db.Where("id = ?", notice.TaskId).Find(&rec)
 					rec.Deleted++
 					Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
-					time.Sleep(1 * time.Second)
+					time.Sleep(250 * time.Millisecond)
 				}
 			}
 		}()
