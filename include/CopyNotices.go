@@ -146,6 +146,7 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 		if incTask.Status != "" {
 			ResponseBadRequest(w, nil, incTask.Status)
 		}
+
 		go func() {
 			for _, pl_id := range incomingData.DestinationPlayLists {
 				var destination DestinationPlaylists

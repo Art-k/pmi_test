@@ -36,6 +36,8 @@ func DoNoticesInJsonTest(run_type string) {
 
 	} else {
 
+		ignoredPlaylists := GetIgnoredPlaylists()
+
 		for _, playlist := range Playlists {
 
 			log.Println("###########################################################################")
@@ -45,6 +47,11 @@ func DoNoticesInJsonTest(run_type string) {
 				log.Println("Skipped, there is no Announcements")
 				continue
 			}
+
+			if IfExists(ignoredPlaylists, playlist.Id) {
+				continue
+			}
+
 			DBNotices := GetAllNoticesByPlaylist(playlist.Id, U, P)
 			if DBNotices == nil {
 				var NoticeError TestError
@@ -102,7 +109,6 @@ func DoNoticesInJsonTest(run_type string) {
 					}
 				}
 			}
-
 			test.PlayListsTested++
 		}
 		test.Status = "Completed"

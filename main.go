@@ -38,6 +38,7 @@ func main() {
 		&inc.TestError{},
 		&inc.CopyNoticesToPlaylistsTask{},
 		&inc.DestinationPlaylists{},
+		&inc.IgnoredPlaylist{},
 	)
 
 	if os.Getenv("MODE") == "DEBUG" {
@@ -72,6 +73,8 @@ func handleHTTP() {
 
 	r.HandleFunc("/test", inc.GetTestsStatistics)
 	r.HandleFunc("/test/{id}", inc.GetTestStatistics)
+	r.HandleFunc("/ignore-pl", inc.IgnoredPlayLists)
+
 	r.HandleFunc("/copy-notes", inc.CopyNotes)
 	r.HandleFunc("/copy-notes/{id}", inc.CopyNotesTask)
 	r.HandleFunc("/playlists-array", inc.GetAllPlaylistsAsArrayOfId)
