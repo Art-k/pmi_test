@@ -18,6 +18,7 @@ type Test struct {
 	RunType          string
 	PlayListsTested  int
 	PlayListsIgnored int
+	Hash             string
 }
 
 type TestError struct {

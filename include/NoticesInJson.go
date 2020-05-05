@@ -104,7 +104,7 @@ func DoNoticesInJsonTest(run_type string) {
 						NoticeError.Type = "NoticeJSONError"
 
 						NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + "), Notice ID : " + strconv.Itoa(DBNotice.Id) +
-							" is not found in JSON, link to notice '" + linktonotice + "' \n link is link + # + /notices/edit/{id}/message"
+							" is not found in JSON, link to notice <a href=" + strconv.Itoa(DBNotice.Id) + ">" + linktonotice + "</a>"
 
 						Db.Create(&NoticeError)
 						test.ErrorCount += 1
@@ -117,16 +117,11 @@ func DoNoticesInJsonTest(run_type string) {
 	}
 
 	test.Duration = int(time.Since(start).Seconds())
+	test.Hash = GetHash()
 	Db.Model(&Test{}).Update(&test)
 
 	if test.ErrorCount != 0 {
-		PostTelegrammMessage("Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below.")
-		var NoticeErrors []TestError
-		Db.Where("test_id = ?", test.ID).Find(&NoticeErrors)
-		for ind, rec := range NoticeErrors {
-			Msg := strconv.Itoa(ind+1) + ". " + rec.Message
-			PostTelegrammMessage(Msg)
-		}
+		PostTelegrammMessage("Notices in JSON found *" + strconv.Itoa(test.ErrorCount) + "* errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
 	}
 	NoticeInJsonTestIsRunning = false
 

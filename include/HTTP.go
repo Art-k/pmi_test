@@ -9,12 +9,25 @@ import (
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		AuthHeader := r.Header.Get("Authorization")
-		if AuthHeader == os.Getenv("AUTH_HASH") {
-			next.ServeHTTP(w, r)
-		} else {
-			ResponseNotFound(w)
+
+		SkipAuth := false
+		if len(r.URL.Path) >= 13 {
+			if r.URL.Path[:13] == "/test-result/" {
+				SkipAuth = true
+			}
 		}
+
+		if !SkipAuth {
+			AuthHeader := r.Header.Get("Authorization")
+			if AuthHeader == os.Getenv("AUTH_HASH") {
+				next.ServeHTTP(w, r)
+			} else {
+				ResponseNotFound(w)
+			}
+		} else {
+			next.ServeHTTP(w, r)
+		}
+
 	})
 }
 
@@ -29,7 +42,8 @@ func PostTelegrammMessage(msg string) {
 
 	if teleBotID != "" && teleBotChannel != "" {
 
-		url = "https://api.telegram.org/bot" + teleBotID + "/sendMessage?chat_id=" + teleBotChannel + "&parse_mode=HTML&text="
+		url = "https://api.telegram.org/bot" + teleBotID + "/sendMessage?chat_id=" + teleBotChannel + "&parse_mode=Markdown&text="
+		//url = "https://api.telegram.org/bot" + teleBotID + "/sendMessage?chat_id=" + teleBotChannel + "&parse_mode=HTML&text="
 
 		msg = strings.Replace(msg, " ", "+", -1)
 		msg = strings.Replace(msg, "'", "%27", -1)

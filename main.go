@@ -73,6 +73,7 @@ func handleHTTP() {
 
 	r.HandleFunc("/test", inc.GetTestsStatistics)
 	r.HandleFunc("/test/{id}", inc.GetTestStatistics)
+	r.HandleFunc("/test-result/{id}", inc.GetTestResult)
 	r.HandleFunc("/ignore-pl", inc.IgnoredPlayLists)
 
 	r.HandleFunc("/copy-notes", inc.CopyNotes)
