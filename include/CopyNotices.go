@@ -128,6 +128,10 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 
 		var response []string
+		var statuses []string
+		statuses = append(statuses, "active")
+		statuses = append(statuses, "future")
+
 		cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(30 * time.Minute))
 
 		var allCopyTasks []CopyNoticesToPlaylistsTask
@@ -141,9 +145,10 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 				if copied_el.IsDeleted {
 					continue
 				}
-				currentNotice := GetNoticeFromPlaylistById(copied_el.PlaylistId, copied_el.NoticesId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+
+				currentNotice := GetNoticeFromPlaylistById(copied_el.PlaylistId, copied_el.NoticesId, statuses, os.Getenv("USER"), os.Getenv("PASSWORD"))
 				if currentNotice.Id == 0 {
-					log.Println("Notice not Found")
+					log.Println("Notice not Found in expected statuses")
 					continue
 				}
 				var copyNotice TypeNotice
