@@ -420,46 +420,8 @@ func DeleteNoticeById(notice_id int, user, pass string) (string, error) {
 func GetNoticeFromPlaylistById(playlist_id, notice_id int, status []string, U, P string) (n TypeNotice) {
 
 	var notices []TypeNotice
-	tmp, err := cache.Get(strconv.Itoa(playlist_id))
-	if err == nil {
-		log.Println(playlist_id, "Found in cashe")
-		err = json.Unmarshal(tmp, &notices)
-	} else {
 
-		log.Println(playlist_id, err)
-		notices = GetAllNoticesByPlaylist(playlist_id, U, P)
-		if len(status) != 0 {
-			var ind int
-			for {
-				var flag bool
-				flag = false
-				for _, st := range status {
-					if notices[ind].Status == st {
-						flag = true
-					}
-				}
-				if flag == false {
-					notices[ind] = notices[len(notices)-1] // Copy last element to index i.
-					notices[len(notices)-1] = n            // Erase last element (write zero value).
-					notices = notices[:len(notices)-1]
-				} else {
-					ind++
-				}
-				if ind >= len(notices) {
-					break
-				}
-			}
-
-		}
-
-		b_notices, _ := json.Marshal(&notices)
-		err = cache.Set(strconv.Itoa(playlist_id), b_notices)
-		if err != nil {
-			log.Println(playlist_id, err)
-		} else {
-			log.Println(playlist_id, "Added to cache")
-		}
-	}
+	notices = GetAllNoticesByPlaylist(playlist_id, U, P)
 
 	for _, notice := range notices {
 		if notice.Id == notice_id {
@@ -468,5 +430,4 @@ func GetNoticeFromPlaylistById(playlist_id, notice_id int, status []string, U, P
 	}
 
 	return n
-
 }

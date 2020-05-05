@@ -39,6 +39,7 @@ func main() {
 		&inc.CopyNoticesToPlaylistsTask{},
 		&inc.DestinationPlaylists{},
 		&inc.IgnoredPlaylist{},
+		&inc.CopiedNoticesHistory{},
 	)
 
 	if os.Getenv("MODE") == "DEBUG" {

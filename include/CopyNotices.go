@@ -45,6 +45,13 @@ type DestinationPlaylists struct {
 	Notice         string
 	DeletedMessage string
 	IsDeleted      bool
+	currentStatus  string
+}
+
+type CopiedNoticesHistory struct {
+	gorm.Model
+	DestinationPlayListsId uint
+	Status                 string
 }
 
 func GetAllPlaylistsAsArrayOfId(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +139,7 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 		statuses = append(statuses, "active")
 		statuses = append(statuses, "future")
 
-		cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(30 * time.Minute))
+		//cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(30 * time.Minute))
 
 		U := os.Getenv("USER")
 		P := os.Getenv("PASSWORD")
@@ -146,32 +153,43 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 			log.Println("Task", task.ID)
 			var copies []DestinationPlaylists
 			Db.Where("task_id = ?", task.ID).Order("playlist_id asc").Find(&copies)
-			for _, copied_el := range copies {
-				if copied_el.IsDeleted {
+			for _, copiedEl := range copies {
+				if copiedEl.IsDeleted {
 					continue
 				}
 
-				currentNotice := GetNoticeFromPlaylistById(copied_el.PlaylistId, copied_el.NoticesId, statuses, U, P)
+				currentNotice := GetNoticeFromPlaylistById(copiedEl.PlaylistId, copiedEl.NoticesId, statuses, U, P)
 				if currentNotice.Id == 0 {
 					log.Println("Notice not Found in expected statuses")
 					continue
 				}
 				var copyNotice TypeNotice
-				err := json.Unmarshal([]byte(copied_el.Notice), &copyNotice)
+				err := json.Unmarshal([]byte(copiedEl.Notice), &copyNotice)
 				if err != nil {
 					log.Println(err)
 					continue
 				}
-				if currentNotice.Status != "expired" {
+				if currentNotice.Status != copiedEl.currentStatus {
+
 					var pl_name string
+
 					for _, pl := range AllPlaylists {
-						if pl.Id == copied_el.PlaylistId {
+						if pl.Id == copiedEl.PlaylistId {
 							pl_name = pl.Title
 						}
 					}
-					msg := "Playlist '" + pl_name + "' (" + strconv.Itoa(copied_el.PlaylistId) + "), notice '" + copyNotice.Title + "' has new status " + currentNotice.Status
+
+					copiedEl.currentStatus = currentNotice.Status
+					Db.Model(&DestinationPlaylists{}).Update(&copiedEl)
+					var history CopiedNoticesHistory
+					history.DestinationPlayListsId = copiedEl.ID
+					history.Status = copiedEl.currentStatus
+					Db.Create(&history)
+
+					msg := "Playlist '" + pl_name + "' (" + strconv.Itoa(copiedEl.PlaylistId) + "), notice '" + copyNotice.Title + "' has new status " + currentNotice.Status
 					log.Println(msg)
 					response = append(response, msg)
+
 				}
 			}
 		}
