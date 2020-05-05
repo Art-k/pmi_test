@@ -134,6 +134,11 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 
 		cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(30 * time.Minute))
 
+		U := os.Getenv("USER")
+		P := os.Getenv("PASSWORD")
+
+		AllPlaylists := GetAllPlaylists(U, P)
+
 		var allCopyTasks []CopyNoticesToPlaylistsTask
 		Db.Find(&allCopyTasks)
 
@@ -146,7 +151,7 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
-				currentNotice := GetNoticeFromPlaylistById(copied_el.PlaylistId, copied_el.NoticesId, statuses, os.Getenv("USER"), os.Getenv("PASSWORD"))
+				currentNotice := GetNoticeFromPlaylistById(copied_el.PlaylistId, copied_el.NoticesId, statuses, U, P)
 				if currentNotice.Id == 0 {
 					log.Println("Notice not Found in expected statuses")
 					continue
@@ -158,7 +163,13 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 				if currentNotice.Status != "expired" {
-					msg := "Playlist (" + strconv.Itoa(copied_el.PlaylistId) + "), notice '" + copyNotice.Title + "' has new status " + currentNotice.Status
+					var pl_name string
+					for _, pl := range AllPlaylists {
+						if pl.Id == copied_el.PlaylistId {
+							pl_name = pl.Title
+						}
+					}
+					msg := "Playlist '" + pl_name + "' (" + strconv.Itoa(copied_el.PlaylistId) + "), notice '" + copyNotice.Title + "' has new status " + currentNotice.Status
 					log.Println(msg)
 					response = append(response, msg)
 				}
