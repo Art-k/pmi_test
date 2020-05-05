@@ -2,6 +2,7 @@ package include
 
 import (
 	"encoding/json"
+	"github.com/allegro/bigcache"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"log"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"time"
 )
+
+var cache *bigcache.BigCache
 
 type CopyNoticesToPlaylists struct {
 	SourcePlaylistId     int
@@ -117,6 +120,47 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 
 		response, _ := json.Marshal(notices)
 		ResponseOK(w, response)
+	}
+}
+
+func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+
+		var response []string
+		cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(30 * time.Minute))
+
+		var allCopyTasks []CopyNoticesToPlaylistsTask
+		Db.Find(&allCopyTasks)
+
+		for _, task := range allCopyTasks {
+			log.Println("Task", task.ID)
+			var copies []DestinationPlaylists
+			Db.Where("task_id = ?", task.ID).Order("playlist_id asc").Find(&copies)
+			for _, copied_el := range copies {
+				if copied_el.IsDeleted {
+					continue
+				}
+				currentNotice := GetNoticeFromPlaylistById(copied_el.PlaylistId, copied_el.NoticesId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+				if currentNotice.Id == 0 {
+					log.Println("Notice not Found")
+					continue
+				}
+				var copyNotice TypeNotice
+				err := json.Unmarshal([]byte(copied_el.Notice), &copyNotice)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				if currentNotice.Status != "expired" {
+					msg := "Playlist (" + strconv.Itoa(copied_el.PlaylistId) + "), notice '" + copyNotice.Title + "' has new status " + currentNotice.Status
+					log.Println(msg)
+					response = append(response, msg)
+				}
+			}
+		}
+		resp, _ := json.Marshal(response)
+		ResponseOK(w, resp)
 	}
 }
 

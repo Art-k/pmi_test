@@ -79,6 +79,7 @@ func handleHTTP() {
 	r.HandleFunc("/copy-notes", inc.CopyNotes)
 	r.HandleFunc("/copy-notes/{id}", inc.CopyNotesTask)
 	r.HandleFunc("/playlists-array", inc.GetAllPlaylistsAsArrayOfId)
+	r.HandleFunc("/used-copy", inc.GetUsedCopy)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {
