@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/joho/godotenv"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -44,8 +45,11 @@ func main() {
 
 	if os.Getenv("MODE") == "DEBUG" {
 		inc.DoNoticesInJsonTest("DebugRun")
+		inc.CompareStatusesCopiedNotices()
 	} else {
 		go func() {
+
+			log.SetOutput(ioutil.Discard)
 
 			var interval int
 			interval_str := os.Getenv("TEST_INTERVAL")
@@ -59,6 +63,18 @@ func main() {
 			}
 
 			inc.DoEvery(time.Duration(interval)*time.Minute, inc.NoticesInJsonTest)
+
+			interval_str = os.Getenv("HISTORY_INTERVAL")
+			if interval_str != "" {
+				interval, err = strconv.Atoi(interval_str)
+				if err != nil {
+					interval = 30
+				}
+			} else {
+				interval = 30
+			}
+
+			inc.DoEvery(time.Duration(interval)*time.Minute, inc.MakeHistory)
 
 		}()
 	}

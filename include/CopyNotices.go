@@ -45,7 +45,7 @@ type DestinationPlaylists struct {
 	Notice         string
 	DeletedMessage string
 	IsDeleted      bool
-	currentStatus  string
+	CurrentStatus  string
 }
 
 type CopiedNoticesHistory struct {
@@ -134,68 +134,58 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 
-		var response []string
-		var statuses []string
-		statuses = append(statuses, "active")
-		statuses = append(statuses, "future")
+		var history CopiedNoticesHistory
+		Db.Find(&history)
+		resp, _ := json.Marshal(history)
+		ResponseOK(w, resp)
 
-		//cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(30 * time.Minute))
+	}
+}
 
-		U := os.Getenv("USER")
-		P := os.Getenv("PASSWORD")
+var DoingHistory bool
 
-		AllPlaylists := GetAllPlaylists(U, P)
+func MakeHistory(t time.Time) {
+	if !DoingHistory {
+		CompareStatusesCopiedNotices()
+	}
+}
 
-		var allCopyTasks []CopyNoticesToPlaylistsTask
-		Db.Find(&allCopyTasks)
+func CompareStatusesCopiedNotices() {
 
-		for _, task := range allCopyTasks {
-			log.Println("Task", task.ID)
-			var copies []DestinationPlaylists
-			Db.Where("task_id = ?", task.ID).Order("playlist_id asc").Find(&copies)
-			for _, copiedEl := range copies {
-				if copiedEl.IsDeleted {
-					continue
-				}
+	DoingHistory = true
 
-				currentNotice := GetNoticeFromPlaylistById(copiedEl.PlaylistId, copiedEl.NoticesId, statuses, U, P)
-				if currentNotice.Id == 0 {
-					log.Println("Notice not Found in expected statuses")
-					continue
-				}
-				var copyNotice TypeNotice
-				err := json.Unmarshal([]byte(copiedEl.Notice), &copyNotice)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-				if currentNotice.Status != copiedEl.currentStatus {
+	var currentPlaylist int
+	var notices []TypeNotice
 
-					var pl_name string
+	var copies []DestinationPlaylists
+	Db.Where("is_deleted = ?", false).Order("playlist_id asc").Find(&copies)
+	for _, copiedEl := range copies {
+		if currentPlaylist != copiedEl.PlaylistId {
+			log.Println("#### GET PLAYLIST ####", copiedEl.PlaylistId)
+			notices = GetAllNoticesByPlaylist(copiedEl.PlaylistId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+			currentPlaylist = copiedEl.PlaylistId
+		}
+		for _, notice := range notices {
+			if notice.Id == copiedEl.NoticesId {
+				if copiedEl.CurrentStatus != notice.Status {
+					copiedEl.CurrentStatus = notice.Status
+					Db.Model(&DestinationPlaylists{}).Update(copiedEl)
 
-					for _, pl := range AllPlaylists {
-						if pl.Id == copiedEl.PlaylistId {
-							pl_name = pl.Title
-						}
-					}
+					var his CopiedNoticesHistory
+					his.DestinationPlayListsId = copiedEl.ID
+					his.Status = notice.Status
+					Db.Create(&his)
 
-					copiedEl.currentStatus = currentNotice.Status
-					Db.Model(&DestinationPlaylists{}).Update(&copiedEl)
-					var history CopiedNoticesHistory
-					history.DestinationPlayListsId = copiedEl.ID
-					history.Status = copiedEl.currentStatus
-					Db.Create(&history)
+					log.Println("Status is changed to ", notice.Status)
 
-					msg := "Playlist '" + pl_name + "' (" + strconv.Itoa(copiedEl.PlaylistId) + "), notice '" + copyNotice.Title + "' has new status " + currentNotice.Status
-					log.Println(msg)
-					response = append(response, msg)
-
+				} else {
+					log.Println("The same Status")
 				}
 			}
 		}
-		resp, _ := json.Marshal(response)
-		ResponseOK(w, resp)
 	}
+
+	DoingHistory = false
 }
 
 func CopyNotes(w http.ResponseWriter, r *http.Request) {
