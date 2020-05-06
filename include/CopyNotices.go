@@ -134,7 +134,7 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 
-		var history CopiedNoticesHistory
+		var history []CopiedNoticesHistory
 		Db.Find(&history)
 		resp, _ := json.Marshal(history)
 		ResponseOK(w, resp)
