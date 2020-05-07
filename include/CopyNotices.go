@@ -219,11 +219,11 @@ func CompareStatusesCopiedNotices(task_type string) {
 			}
 		}
 	}
-	PostTelegrammMessage("Notices History Created")
+
 	task.Duration = int(time.Since(start).Seconds())
 
 	Db.Create(&task)
-
+	PostTelegrammMessage("Notices History Created " + strconv.Itoa(task.Changes) + " changes found. Task id = " + strconv.Itoa(int(task.ID)))
 	DoingHistory = false
 }
 
