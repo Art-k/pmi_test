@@ -179,7 +179,7 @@ func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-
+		responseStr = append(responseStr, "Total :"+strconv.Itoa(len(responseStr)))
 		resp, _ := json.Marshal(responseStr)
 		ResponseOK(w, resp)
 
@@ -188,6 +188,11 @@ func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
 
 func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case "POST":
+		go func() {
+			CompareStatusesCopiedNotices("Call from API")
+		}()
+		ResponseOK(w, nil)
 	case "GET":
 
 		type historyResponseType struct {
@@ -242,7 +247,7 @@ func CompareStatusesCopiedNotices(task_type string) {
 
 	var task ComparesTaskType
 	task.TaskType = task_type
-
+	Db.Create(&task)
 	var currentPlaylist int
 	var notices []TypeNotice
 
@@ -277,7 +282,7 @@ func CompareStatusesCopiedNotices(task_type string) {
 
 	task.Duration = int(time.Since(start).Seconds())
 
-	Db.Create(&task)
+	Db.Model(&ComparesTaskType{}).Update(&task)
 	PostTelegrammMessage("Notices History Created " + strconv.Itoa(task.Changes) + " changes found. Task id = " + strconv.Itoa(int(task.ID)))
 	DoingHistory = false
 }
