@@ -2,6 +2,7 @@ package include
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/allegro/bigcache"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -130,6 +131,61 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func GetComparesTasks(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+
+		var comparesTasks []ComparesTaskType
+		Db.Find(&comparesTasks)
+
+		resp, _ := json.Marshal(comparesTasks)
+		ResponseOK(w, resp)
+	}
+}
+
+func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
+	//start := time.Now()
+
+	//var task ComparesTaskType
+	//task.TaskType = task_type
+	switch r.Method {
+	case "GET":
+		playLists := GetAllPlaylists(os.Getenv("USER"), os.Getenv("PASSWORD"))
+
+		var currentPlaylist TypePlaylist
+		var notices []TypeNotice
+		var responseStr []string
+		var copies []DestinationPlaylists
+		Db.Where("is_deleted = ?", false).Order("playlist_id asc").Find(&copies)
+		for _, copiedEl := range copies {
+			if currentPlaylist.Id != copiedEl.PlaylistId {
+				fmt.Println("#### GET PLAYLIST ####", copiedEl.PlaylistId)
+				notices = GetAllNoticesByPlaylist(copiedEl.PlaylistId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+				//currentPlaylist = copiedEl.PlaylistId
+				for _, playlist := range playLists {
+					if copiedEl.PlaylistId == playlist.Id {
+						currentPlaylist = playlist
+						break
+					}
+				}
+			}
+			for _, notice := range notices {
+				if notice.Id == copiedEl.NoticesId {
+					if copiedEl.CurrentStatus == "active" {
+						Msg := "Playlist '" + currentPlaylist.Title + "' (" + strconv.Itoa(currentPlaylist.Id) + ") , Notice '" + notice.Title + "' has status 'ACTIVE'"
+						fmt.Println(Msg)
+						responseStr = append(responseStr, Msg)
+					}
+				}
+			}
+		}
+
+		resp, _ := json.Marshal(responseStr)
+		ResponseOK(w, resp)
+
+	}
+}
+
 func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -145,7 +201,6 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 		Db.Where("is_deleted = ?", false).Find(&copies)
 
 		for _, copiedEl := range copies {
-
 			var history []CopiedNoticesHistory
 			Db.Where("destination_play_lists_id = ?", copiedEl.ID).Find(&history)
 			if len(history) > 1 {

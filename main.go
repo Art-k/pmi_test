@@ -44,41 +44,43 @@ func main() {
 		&inc.ComparesTaskType{},
 	)
 
-	if os.Getenv("MODE") == "DEBUG" {
-		//inc.DoNoticesInJsonTest("DebugRun")
-		inc.CompareStatusesCopiedNotices("debug")
-	} else {
-		go func() {
+	go func() {
+		if os.Getenv("MODE") == "DEBUG" {
+			inc.DoNoticesInJsonTest("DebugRun")
+			inc.CompareStatusesCopiedNotices("debug")
+		} else {
+			go func() {
 
-			log.SetOutput(ioutil.Discard)
+				log.SetOutput(ioutil.Discard)
 
-			var interval int
-			interval_str := os.Getenv("TEST_INTERVAL")
-			if interval_str != "" {
-				interval, err = strconv.Atoi(interval_str)
-				if err != nil {
+				var interval int
+				interval_str := os.Getenv("TEST_INTERVAL")
+				if interval_str != "" {
+					interval, err = strconv.Atoi(interval_str)
+					if err != nil {
+						interval = 30
+					}
+				} else {
 					interval = 30
 				}
-			} else {
-				interval = 30
-			}
 
-			inc.DoEvery(time.Duration(interval)*time.Minute, inc.NoticesInJsonTest)
+				inc.DoEvery(time.Duration(interval)*time.Minute, inc.NoticesInJsonTest)
 
-			interval_str = os.Getenv("HISTORY_INTERVAL")
-			if interval_str != "" {
-				interval, err = strconv.Atoi(interval_str)
-				if err != nil {
+				interval_str = os.Getenv("HISTORY_INTERVAL")
+				if interval_str != "" {
+					interval, err = strconv.Atoi(interval_str)
+					if err != nil {
+						interval = 30
+					}
+				} else {
 					interval = 30
 				}
-			} else {
-				interval = 30
-			}
 
-			inc.DoEvery(time.Duration(interval)*time.Minute, inc.MakeHistory)
+				inc.DoEvery(time.Duration(interval)*time.Minute, inc.MakeHistory)
 
-		}()
-	}
+			}()
+		}
+	}()
 
 	handleHTTP()
 }
@@ -98,6 +100,8 @@ func handleHTTP() {
 	r.HandleFunc("/copy-notes/{id}", inc.CopyNotesTask)
 	r.HandleFunc("/playlists-array", inc.GetAllPlaylistsAsArrayOfId)
 	r.HandleFunc("/used-copy", inc.GetUsedCopy)
+	r.HandleFunc("/active-copy", inc.GetActiveCopy)
+	r.HandleFunc("/compare-tasks", inc.GetComparesTasks)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {
