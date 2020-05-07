@@ -44,8 +44,8 @@ func main() {
 	)
 
 	if os.Getenv("MODE") == "DEBUG" {
-		inc.DoNoticesInJsonTest("DebugRun")
-		inc.CompareStatusesCopiedNotices()
+		//inc.DoNoticesInJsonTest("DebugRun")
+		inc.CompareStatusesCopiedNotices("debug")
 	} else {
 		go func() {
 

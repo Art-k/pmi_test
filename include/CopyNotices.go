@@ -168,13 +168,25 @@ var DoingHistory bool
 
 func MakeHistory(t time.Time) {
 	if !DoingHistory {
-		CompareStatusesCopiedNotices()
+		CompareStatusesCopiedNotices("auto")
 	}
 }
 
-func CompareStatusesCopiedNotices() {
+type ComparesTaskType struct {
+	gorm.Model
+	TaskType string
+	Changes  int
+	Duration int
+}
+
+func CompareStatusesCopiedNotices(task_type string) {
 
 	DoingHistory = true
+
+	start := time.Now()
+
+	var task ComparesTaskType
+	task.TaskType = task_type
 
 	var currentPlaylist int
 	var notices []TypeNotice
@@ -190,6 +202,7 @@ func CompareStatusesCopiedNotices() {
 		for _, notice := range notices {
 			if notice.Id == copiedEl.NoticesId {
 				if copiedEl.CurrentStatus != notice.Status {
+					task.Changes++
 					copiedEl.CurrentStatus = notice.Status
 					Db.Model(&DestinationPlaylists{}).Update(copiedEl)
 
@@ -207,6 +220,10 @@ func CompareStatusesCopiedNotices() {
 		}
 	}
 	PostTelegrammMessage("Notices History Created")
+	task.Duration = int(time.Since(start).Seconds())
+
+	Db.Create(&task)
+
 	DoingHistory = false
 }
 
