@@ -206,7 +206,7 @@ func CompareStatusesCopiedNotices() {
 			}
 		}
 	}
-
+	PostTelegrammMessage("Notices History Created")
 	DoingHistory = false
 }
 
