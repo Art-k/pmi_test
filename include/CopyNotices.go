@@ -134,9 +134,31 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 
-		var history []CopiedNoticesHistory
-		Db.Find(&history)
-		resp, _ := json.Marshal(history)
+		type historyResponseType struct {
+			Notice  DestinationPlaylists
+			History []CopiedNoticesHistory
+		}
+
+		var historyResponses []historyResponseType
+
+		var copies []DestinationPlaylists
+		Db.Where("is_deleted = ?", false).Find(&copies)
+
+		for _, copiedEl := range copies {
+
+			var history []CopiedNoticesHistory
+			Db.Where("destination_play_lists_id = ?", copiedEl.ID).Find(&history)
+			if len(history) > 1 {
+				var historyResponse historyResponseType
+				historyResponse.Notice = copiedEl
+				historyResponse.History = history
+
+				historyResponses = append(historyResponses, historyResponse)
+
+			}
+		}
+
+		resp, _ := json.Marshal(historyResponses)
 		ResponseOK(w, resp)
 
 	}
