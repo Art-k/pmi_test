@@ -45,6 +45,8 @@ func PostTelegrammMessage(msg string) {
 		url = "https://api.telegram.org/bot" + teleBotID + "/sendMessage?chat_id=" + teleBotChannel + "&parse_mode=Markdown&text="
 		//url = "https://api.telegram.org/bot" + teleBotID + "/sendMessage?chat_id=" + teleBotChannel + "&parse_mode=HTML&text="
 
+		msg = os.Getenv("MODE") + " " + msg
+
 		msg = strings.Replace(msg, " ", "+", -1)
 		msg = strings.Replace(msg, "'", "%27", -1)
 		msg = strings.Replace(msg, "\n", "%0A", -1)
