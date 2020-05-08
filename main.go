@@ -99,7 +99,7 @@ func handleHTTP() {
 	r.HandleFunc("/ignore-pl", inc.IgnoredPlayLists)
 
 	r.HandleFunc("/copy-notes", inc.CopyNotes)
-	r.HandleFunc("/copy-notes/history", inc.FuncHistory)
+	r.HandleFunc("/copy-notes/history/{id}", inc.FuncHistory)
 	r.HandleFunc("/copy-notes/{id}", inc.CopyNotesTask)
 	r.HandleFunc("/playlists-array", inc.GetAllPlaylistsAsArrayOfId)
 	r.HandleFunc("/used-copy", inc.GetUsedCopy)

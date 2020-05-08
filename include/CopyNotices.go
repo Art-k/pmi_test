@@ -290,11 +290,34 @@ func CompareStatusesCopiedNotices(task_type string) {
 func FuncHistory(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
+
 		var history []CopiedNoticesHistory
 		Db.Find(&history)
-		response, _ := json.Marshal(history)
+		histories := map[string]interface{}{
+			"Total":    len(history),
+			"Entities": history,
+		}
+		response, _ := json.Marshal(histories)
 		ResponseOK(w, response)
+		return
+
+	case "DELETE":
+		params := mux.Vars(r)
+		if params["id"] != "ALL" {
+
+			Db.Where("id = ?", params["id"]).Delete(CopiedNoticesHistory{})
+			ResponseOK(w, nil)
+			return
+
+		} else {
+
+			Db.Unscoped().Delete(CopiedNoticesHistory{})
+			ResponseOK(w, nil)
+			return
+
+		}
 	}
+
 }
 
 func CopyNotes(w http.ResponseWriter, r *http.Request) {
