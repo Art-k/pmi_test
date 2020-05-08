@@ -49,9 +49,8 @@ func main() {
 			inc.DoNoticesInJsonTest("DebugRun")
 			inc.CompareStatusesCopiedNotices("debug")
 		} else {
+			log.SetOutput(ioutil.Discard)
 			go func() {
-
-				log.SetOutput(ioutil.Discard)
 
 				var interval int
 				interval_str := os.Getenv("TEST_INTERVAL")
@@ -65,15 +64,18 @@ func main() {
 				}
 
 				inc.DoEvery(time.Duration(interval)*time.Minute, inc.NoticesInJsonTest)
+			}()
 
-				interval_str = os.Getenv("HISTORY_INTERVAL")
+			go func() {
+				var interval int
+				interval_str := os.Getenv("HISTORY_INTERVAL")
 				if interval_str != "" {
 					interval, err = strconv.Atoi(interval_str)
 					if err != nil {
-						interval = 30
+						interval = 240
 					}
 				} else {
-					interval = 30
+					interval = 240
 				}
 
 				inc.DoEvery(time.Duration(interval)*time.Minute, inc.MakeHistory)
