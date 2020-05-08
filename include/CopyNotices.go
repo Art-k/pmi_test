@@ -287,6 +287,16 @@ func CompareStatusesCopiedNotices(task_type string) {
 	DoingHistory = false
 }
 
+func FuncHistory(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		var history []CopiedNoticesHistory
+		Db.Find(&history)
+		response, _ := json.Marshal(history)
+		ResponseOK(w, response)
+	}
+}
+
 func CopyNotes(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
