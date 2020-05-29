@@ -23,12 +23,12 @@ type PodReplicas struct {
 }
 
 type PostPodStat struct {
-	PodName string
-	PodCode string
-	CPU     int
-	CPUUnit string
-	RAM     int
-	RAMUnit string
+	PodName string `json:"pod_name"`
+	PodCode string `json:"pod_code"`
+	CPU     int    `json:"cpu"`
+	CPUUnit string `json:"cpu_unit"`
+	RAM     int    `json:"ram"`
+	RAMUnit string `json:"ram_unit"`
 }
 
 type PodStat struct {
