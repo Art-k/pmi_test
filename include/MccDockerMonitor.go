@@ -192,7 +192,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 
 			var repl PodReplicas
 
-			Db.Where("stat_number = ?", statNumber).Find(&repl)
+			Db.Where("stat_number = ?", statNumber.StatNumber).Find(&repl)
 
 			if repl.ID == 0 {
 				repl.StatNumber = statNumber.StatNumber
@@ -217,7 +217,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 					newMax.CPU = stat.CPU
 					newMax.CPUUnit = stat.CPUUnit
 					Db.Create(&newMax)
-					//PostTelegrammMessage("New CPU Load Maximum is Reached, POD : '" + rec.PodName + "'" + "value : " + strconv.Itoa(stat.CPU) + " (" + statNumber.StatNumber + ")")
+					//PostTelegrammMessage("New CPU Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.CPU) + " (" + statNumber.StatNumber + ")")
 				}
 			}
 
@@ -235,7 +235,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 					newMax.RAM = stat.CPU
 					newMax.RAMUnit = stat.CPUUnit
 					Db.Create(&newMax)
-					//PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + "value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
+					//PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
 				}
 			}
 		}
