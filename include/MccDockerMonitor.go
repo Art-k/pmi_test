@@ -85,7 +85,10 @@ func APIMccDockerMonitorCpuMax(w http.ResponseWriter, r *http.Request) {
 			ResponseBadRequest(w, err, "")
 		}
 		ResponseOK(w, response)
+	case "DELETE":
 
+	default:
+		ResponseUnknown(w, "Method is not allowed")
 	}
 }
 
@@ -108,7 +111,10 @@ func APIMccDockerMonitorRamMax(w http.ResponseWriter, r *http.Request) {
 			ResponseBadRequest(w, err, "")
 		}
 		ResponseOK(w, response)
+	case "DELETE":
 
+	default:
+		ResponseUnknown(w, "Method is not allowed")
 	}
 
 }
