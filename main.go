@@ -42,6 +42,8 @@ func main() {
 		&inc.IgnoredPlaylist{},
 		&inc.CopiedNoticesHistory{},
 		&inc.ComparesTaskType{},
+		&inc.PodReplicas{},
+		&inc.PodStat{},
 	)
 
 	go func() {
@@ -81,6 +83,23 @@ func main() {
 				inc.DoEvery(time.Duration(interval)*time.Minute, inc.MakeHistory)
 
 			}()
+
+			go func() {
+				var interval int
+				interval_str := os.Getenv("CLASSIFIEDS_INTERVAL")
+				if interval_str != "" {
+					interval, err = strconv.Atoi(interval_str)
+					if err != nil {
+						interval = 240
+					}
+				} else {
+					interval = 240
+				}
+
+				inc.DoEvery(time.Duration(interval)*time.Minute, inc.CheckClassifieds)
+
+			}()
+
 		}
 	}()
 
@@ -105,6 +124,8 @@ func handleHTTP() {
 	r.HandleFunc("/used-copy", inc.GetUsedCopy)
 	r.HandleFunc("/active-copy", inc.GetActiveCopy)
 	r.HandleFunc("/compare-tasks", inc.GetComparesTasks)
+
+	r.HandleFunc("/mcc-docker_monitor", inc.APIMccDockerMonitor)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {

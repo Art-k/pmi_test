@@ -294,8 +294,8 @@ func FuncHistory(w http.ResponseWriter, r *http.Request) {
 		var history []CopiedNoticesHistory
 		Db.Find(&history)
 		histories := map[string]interface{}{
-			"Total":    len(history),
-			"Entities": history,
+			"Records": history,
+			"Total":   len(history),
 		}
 		response, _ := json.Marshal(histories)
 		ResponseOK(w, response)
@@ -317,7 +317,6 @@ func FuncHistory(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
-
 }
 
 func CopyNotes(w http.ResponseWriter, r *http.Request) {
