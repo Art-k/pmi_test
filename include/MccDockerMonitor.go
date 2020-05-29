@@ -222,7 +222,6 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 					PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + "value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
 				}
 			}
-
 		}
 
 		ResponseOK(w, []byte("added"))
