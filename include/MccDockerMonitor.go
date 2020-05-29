@@ -62,7 +62,7 @@ func APIMccDockerMonitorCpuMax(w http.ResponseWriter, r *http.Request) {
 		DB := Db
 
 		if pod_name != "" {
-			DB.Where("pod_name = ?", pod_name)
+			DB = DB.Where("pod_name = ?", pod_name)
 		}
 
 		var recs []PodCpuMax
@@ -85,7 +85,7 @@ func APIMccDockerMonitorRamMax(w http.ResponseWriter, r *http.Request) {
 		DB := Db
 
 		if pod_name != "" {
-			DB.Where("pod_name = ?", pod_name)
+			DB = DB.Where("pod_name = ?", pod_name)
 		}
 
 		var recs []PodRamMax
@@ -211,7 +211,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 				cpuMax.CPUUnit = stat.CPUUnit
 				Db.Create(&cpuMax)
 			} else {
-				if cpuMax.CPU > stat.CPU {
+				if cpuMax.CPU < stat.CPU {
 					var newMax PodCpuMax
 					newMax.PodName = rec.PodName
 					newMax.CPU = stat.CPU
@@ -229,7 +229,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 				ramMax.RAMUnit = stat.CPUUnit
 				Db.Create(&ramMax)
 			} else {
-				if ramMax.RAM > stat.RAM {
+				if ramMax.RAM < stat.RAM {
 					var newMax PodRamMax
 					newMax.PodName = rec.PodName
 					newMax.RAM = stat.CPU

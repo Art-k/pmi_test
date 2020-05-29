@@ -31,7 +31,7 @@ func main() {
 		log.Fatal("ERROR loading .env file")
 	}
 
-	inc.Db.LogMode(false)
+	inc.Db.LogMode(true)
 
 	inc.Db.AutoMigrate(
 		&inc.Token{},
@@ -46,6 +46,7 @@ func main() {
 		&inc.PodStat{},
 		&inc.PodCpuMax{},
 		&inc.PodRamMax{},
+		&inc.PodStatNumber{},
 	)
 
 	go func() {
