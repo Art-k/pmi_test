@@ -53,6 +53,37 @@ type PodStat struct {
 	PostPodStat
 }
 
+func APIMccDockerMonitorCpuMax(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+
+		var recs []PodCpuMax
+		Db.Find(&recs)
+		response, err := json.Marshal(&recs)
+		if err != nil {
+			ResponseBadRequest(w, err, "")
+		}
+		ResponseOK(w, response)
+
+	}
+}
+
+func APIMccDockerMonitorRamMax(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+
+		var recs []PodRamMax
+		Db.Find(&recs)
+		response, err := json.Marshal(&recs)
+		if err != nil {
+			ResponseBadRequest(w, err, "")
+		}
+		ResponseOK(w, response)
+
+	}
+
+}
+
 func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {

@@ -128,6 +128,8 @@ func handleHTTP() {
 	r.HandleFunc("/compare-tasks", inc.GetComparesTasks)
 
 	r.HandleFunc("/mcc-docker-monitor", inc.APIMccDockerMonitor)
+	r.HandleFunc("/mcc-docker-monitor-cpu-max", inc.APIMccDockerMonitorCpuMax)
+	r.HandleFunc("/mcc-docker-monitor/ram-max", inc.APIMccDockerMonitorRamMax)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {
