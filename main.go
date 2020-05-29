@@ -44,6 +44,8 @@ func main() {
 		&inc.ComparesTaskType{},
 		&inc.PodReplicas{},
 		&inc.PodStat{},
+		&inc.PodCpuMax{},
+		&inc.PodRamMax{},
 	)
 
 	go func() {
