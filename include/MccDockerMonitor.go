@@ -33,17 +33,26 @@ type PostPodStat struct {
 
 type PodCpuMax struct {
 	gorm.Model
-	PodName     string `json:"pod_name"`
-	CPU         int    `json:"cpu"`
-	CPUUnit     string `json:"cpu_unit"`
-	PodReplicas int    `json:"replica_count"`
+	StatNumber string
+	PodName    string `json:"pod_name"`
+	CPU        int    `json:"cpu"`
+	CPUUnit    string `json:"cpu_unit"`
+	//PodReplicas int    `json:"replica_count"`
 }
 
 type PodRamMax struct {
 	gorm.Model
+	StatNumber string
+	PodName    string `json:"pod_name"`
+	RAM        int    `json:"cpu"`
+	RAMUnit    string `json:"ram_unit"`
+	//PodReplicas int    `json:"replica_count"`
+}
+
+type PodReplicaMax struct {
+	gorm.Model
+	StatNumber  string
 	PodName     string `json:"pod_name"`
-	RAM         int    `json:"cpu"`
-	RAMUnit     string `json:"ram_unit"`
 	PodReplicas int    `json:"replica_count"`
 }
 
@@ -51,6 +60,10 @@ type PodStat struct {
 	gorm.Model
 	StatNumber string
 	PostPodStat
+}
+
+func APIMccDockerMonitorReplicaMax(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func APIMccDockerMonitorCpuMax(w http.ResponseWriter, r *http.Request) {
@@ -206,6 +219,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 			var cpuMax PodCpuMax
 			Db.Where("pod_name = ?", rec.PodName).Order("created_at desc").Limit(1).Find(&cpuMax)
 			if cpuMax.ID == 0 {
+				cpuMax.StatNumber = rec.StatNumber
 				cpuMax.PodName = rec.PodName
 				cpuMax.CPU = stat.CPU
 				cpuMax.CPUUnit = stat.CPUUnit
@@ -213,17 +227,19 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 			} else {
 				if cpuMax.CPU < stat.CPU {
 					var newMax PodCpuMax
+					newMax.StatNumber = rec.StatNumber
 					newMax.PodName = rec.PodName
 					newMax.CPU = stat.CPU
 					newMax.CPUUnit = stat.CPUUnit
 					Db.Create(&newMax)
-					//PostTelegrammMessage("New CPU Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.CPU) + " (" + statNumber.StatNumber + ")")
+					PostTelegrammMessage("New CPU Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.CPU) + " (" + statNumber.StatNumber + ")")
 				}
 			}
 
 			var ramMax PodRamMax
 			Db.Where("pod_name = ?", rec.PodName).Order("created_at desc").Limit(1).Find(&ramMax)
 			if ramMax.ID == 0 {
+
 				ramMax.PodName = rec.PodName
 				ramMax.RAM = stat.CPU
 				ramMax.RAMUnit = stat.CPUUnit
@@ -235,7 +251,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 					newMax.RAM = stat.CPU
 					newMax.RAMUnit = stat.CPUUnit
 					Db.Create(&newMax)
-					//PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
+					PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
 				}
 			}
 		}
