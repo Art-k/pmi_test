@@ -59,12 +59,14 @@ func APIMccDockerMonitorCpuMax(w http.ResponseWriter, r *http.Request) {
 
 		pod_name := r.URL.Query().Get("pod_name")
 
+		DB := Db
+
 		if pod_name != "" {
-			Db.Where("pod_name = ?", pod_name)
+			DB.Where("pod_name = ?", pod_name)
 		}
 
 		var recs []PodCpuMax
-		Db.Order("created_at desc").Find(&recs)
+		DB.Order("created_at desc").Find(&recs)
 		response, err := json.Marshal(&recs)
 		if err != nil {
 			ResponseBadRequest(w, err, "")
@@ -80,12 +82,14 @@ func APIMccDockerMonitorRamMax(w http.ResponseWriter, r *http.Request) {
 
 		pod_name := r.URL.Query().Get("pod_name")
 
+		DB := Db
+
 		if pod_name != "" {
-			Db.Where("pod_name = ?", pod_name)
+			DB.Where("pod_name = ?", pod_name)
 		}
 
 		var recs []PodRamMax
-		Db.Order("created_at desc").Find(&recs)
+		DB.Order("created_at desc").Find(&recs)
 		response, err := json.Marshal(&recs)
 		if err != nil {
 			ResponseBadRequest(w, err, "")
