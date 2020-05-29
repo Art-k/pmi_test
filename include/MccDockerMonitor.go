@@ -44,7 +44,7 @@ type PodRamMax struct {
 	gorm.Model
 	StatNumber string
 	PodName    string `json:"pod_name"`
-	RAM        int    `json:"cpu"`
+	RAM        int    `json:"ram"`
 	RAMUnit    string `json:"ram_unit"`
 	//PodReplicas int    `json:"replica_count"`
 }
