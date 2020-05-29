@@ -241,16 +241,16 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 			if ramMax.ID == 0 {
 				ramMax.StatNumber = statNumber.StatNumber
 				ramMax.PodName = rec.PodName
-				ramMax.RAM = stat.CPU
-				ramMax.RAMUnit = stat.CPUUnit
+				ramMax.RAM = stat.RAM
+				ramMax.RAMUnit = stat.RAMUnit
 				Db.Create(&ramMax)
 			} else {
 				if ramMax.RAM < stat.RAM {
 					var newMax PodRamMax
 					newMax.StatNumber = statNumber.StatNumber
 					newMax.PodName = rec.PodName
-					newMax.RAM = stat.CPU
-					newMax.RAMUnit = stat.CPUUnit
+					newMax.RAM = stat.RAM
+					newMax.RAMUnit = stat.RAMUnit
 					Db.Create(&newMax)
 					//PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
 				}
