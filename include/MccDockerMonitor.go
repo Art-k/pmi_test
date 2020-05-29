@@ -252,7 +252,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 					newMax.RAM = stat.CPU
 					newMax.RAMUnit = stat.CPUUnit
 					Db.Create(&newMax)
-					PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
+					//PostTelegrammMessage("New RAM Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.RAM) + " (" + statNumber.StatNumber + ")")
 				}
 			}
 		}
