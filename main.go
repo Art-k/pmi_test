@@ -47,6 +47,7 @@ func main() {
 		&inc.PodCpuMax{},
 		&inc.PodRamMax{},
 		&inc.PodStatNumber{},
+		&inc.PodCpuMaxByHour{},
 	)
 
 	go func() {

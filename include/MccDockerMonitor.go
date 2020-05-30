@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type PodStatNumber struct {
@@ -34,6 +35,19 @@ type PostPodStat struct {
 type PodCpuMax struct {
 	gorm.Model
 	StatNumber string
+	PodName    string `json:"pod_name"`
+	CPU        int    `json:"cpu"`
+	CPUUnit    string `json:"cpu_unit"`
+	//PodReplicas int    `json:"replica_count"`
+}
+
+type PodCpuMaxByHour struct {
+	gorm.Model
+	Year       int    `json:"year"`
+	Month      int    `json:"month"`
+	Day        int    `json:"day"`
+	Hour       int    `json:"hour"`
+	StatNumber string `json:"stat_code"`
 	PodName    string `json:"pod_name"`
 	CPU        int    `json:"cpu"`
 	CPUUnit    string `json:"cpu_unit"`
@@ -239,6 +253,44 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 					newMax.CPUUnit = stat.CPUUnit
 					Db.Create(&newMax)
 					PostTelegrammMessage("New CPU Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.CPU) + " (" + statNumber.StatNumber + ")")
+				}
+			}
+
+			var cpuMaxHour PodCpuMaxByHour
+			Hour := time.Now().Hour()
+			Year := time.Now().Year()
+			Month := int(time.Now().Month())
+			Day := time.Now().Day()
+
+			Db.Where("pod_name = ?", rec.PodName).
+				Where("hour = ?", Hour).
+				Where("year = ?", Year).
+				Where("day = ?", Day).
+				Where("month = ?", Month).
+				Order("created_at desc").Limit(1).Find(&cpuMaxHour)
+			if cpuMaxHour.ID == 0 {
+				cpuMaxHour.Hour = Hour
+				cpuMaxHour.Year = Year
+				cpuMaxHour.Day = Day
+				cpuMaxHour.Month = Month
+				cpuMaxHour.StatNumber = statNumber.StatNumber
+				cpuMaxHour.PodName = rec.PodName
+				cpuMaxHour.CPU = stat.CPU
+				cpuMaxHour.CPUUnit = stat.CPUUnit
+				Db.Create(&cpuMaxHour)
+			} else {
+				if cpuMax.CPU < stat.CPU {
+					var newMax PodCpuMaxByHour
+					newMax.Hour = Hour
+					newMax.Year = Year
+					newMax.Day = Day
+					newMax.Month = Month
+					newMax.StatNumber = statNumber.StatNumber
+					newMax.PodName = rec.PodName
+					newMax.CPU = stat.CPU
+					newMax.CPUUnit = stat.CPUUnit
+					Db.Create(&newMax)
+					//PostTelegrammMessage("New CPU Load Maximum is Reached, POD : '" + rec.PodName + "'" + ", value : " + strconv.Itoa(stat.CPU) + " (" + statNumber.StatNumber + ")")
 				}
 			}
 
