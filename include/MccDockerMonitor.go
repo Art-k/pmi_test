@@ -134,7 +134,9 @@ func APIMccDockerMonitorRamMax(w http.ResponseWriter, r *http.Request) {
 }
 
 func APIMccDockerMonitorReplicas(w http.ResponseWriter, r *http.Request) {
+
 	switch r.Method {
+
 	case "GET":
 
 		start_data := r.URL.Query().Get("start-data")
