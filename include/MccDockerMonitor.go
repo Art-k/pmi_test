@@ -292,7 +292,9 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 
 			var repl PodReplicas
 
-			Db.Where("stat_number = ?", statNumber.StatNumber).Find(&repl)
+			Db.Where("stat_number = ?", statNumber.StatNumber).
+				Where("pod_name = ?", stat.PodName).
+				Find(&repl)
 
 			if repl.ID == 0 {
 				repl.StatNumber = statNumber.StatNumber
