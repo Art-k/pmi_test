@@ -133,6 +133,25 @@ func APIMccDockerMonitorRamMax(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func APIMccDockerMonitorReplicas(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+
+		var recs PodReplicas
+		Db.Find(&recs)
+
+		response, err := json.Marshal(&recs)
+		if err != nil {
+			ResponseBadRequest(w, err, "")
+		}
+		ResponseOK(w, response)
+
+	default:
+		ResponseUnknown(w, "Method is not allowed")
+	}
+
+}
+
 func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {

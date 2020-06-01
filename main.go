@@ -130,6 +130,7 @@ func handleHTTP() {
 	r.HandleFunc("/compare-tasks", inc.GetComparesTasks)
 
 	r.HandleFunc("/mcc-docker-monitor", inc.APIMccDockerMonitor)
+	r.HandleFunc("/mcc-docker-monitor-replicas", inc.APIMccDockerMonitorReplicas)
 	r.HandleFunc("/mcc-docker-monitor-cpu-max", inc.APIMccDockerMonitorCpuMax)
 	r.HandleFunc("/mcc-docker-monitor-ram-max", inc.APIMccDockerMonitorRamMax)
 	r.HandleFunc("/mcc-docker-monitor-replica-max", inc.APIMccDockerMonitorReplicaMax)
