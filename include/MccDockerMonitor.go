@@ -202,8 +202,12 @@ func APIMccDockerMonitorReplicas(w http.ResponseWriter, r *http.Request) {
 			if scope == "ALL" {
 				Db.Unscoped().Delete(&PodReplicas{})
 				ResponseOK(w, []byte("all records are Deleted"))
+				return
 			}
 		}
+
+		ResponseBadRequest(w, nil, "Please define Scope")
+		return
 
 	default:
 		ResponseUnknown(w, "Method is not allowed")
