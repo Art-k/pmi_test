@@ -200,8 +200,10 @@ func APIMccDockerMonitorReplicas(w http.ResponseWriter, r *http.Request) {
 
 		if scope != "" {
 			if scope == "ALL" {
+
 				Db.Unscoped().Delete(&PodReplicas{})
 				ResponseOK(w, []byte("all records are Deleted"))
+
 				return
 			}
 		}
