@@ -137,7 +137,7 @@ func APIMccDockerMonitorReplicas(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 
-		var recs PodReplicas
+		var recs []PodReplicas
 		Db.Find(&recs)
 
 		response, err := json.Marshal(&recs)
