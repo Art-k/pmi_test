@@ -19,7 +19,7 @@ type PodStatNumber struct {
 type PodReplicas struct {
 	gorm.Model
 	StatNumber  string
-	PodName     uint
+	PodName     string
 	PodReplicas int
 }
 
@@ -299,6 +299,7 @@ func APIMccDockerMonitor(w http.ResponseWriter, r *http.Request) {
 			if repl.ID == 0 {
 				repl.StatNumber = statNumber.StatNumber
 				repl.PodReplicas = 1
+				repl.PodName = stat.PodName
 				Db.Create(&repl)
 			} else {
 				repl.PodReplicas += 1
