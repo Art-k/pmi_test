@@ -156,6 +156,7 @@ func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
 		var notices []TypeNotice
 		var responseStr []string
 		var copies []DestinationPlaylists
+
 		Db.Where("is_deleted = ?", false).Order("playlist_id asc").Find(&copies)
 		for _, copiedEl := range copies {
 			if currentPlaylist.Id != copiedEl.PlaylistId {
@@ -169,6 +170,7 @@ func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+
 			for _, notice := range notices {
 				if notice.Id == copiedEl.NoticesId {
 					if copiedEl.CurrentStatus == "active" {
