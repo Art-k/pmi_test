@@ -48,7 +48,7 @@ func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		var tests []Test
-		Db.Order("created_at desc").Find(&tests)
+		Db.Order("created_at desc").Limit(100).Find(&tests)
 		response, _ := json.Marshal(tests)
 		ResponseOK(w, response)
 	case "POST":
