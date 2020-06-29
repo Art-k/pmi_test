@@ -326,8 +326,29 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 
+		var page int
+		var perPage int
+
+		pageStr := r.URL.Query().Get("page")
+
+		if pageStr == "" {
+			page = 1
+		} else {
+			page, _ = strconv.Atoi(pageStr)
+		}
+
+		perPageStr := r.URL.Query().Get("per-page")
+		if perPageStr == "" {
+			perPage = 15
+		} else {
+			perPage, _ = strconv.Atoi(perPageStr)
+			if perPage > 1000 {
+				perPage = 1000
+			}
+		}
+
 		var tasks []CopyNoticesToPlaylistsTask
-		Db.Order("created_at desc").Find(&tasks)
+		Db.Order("created_at desc").Offset((page - 1) * perPage).Limit(perPage).Find(&tasks)
 		response, _ := json.Marshal(tasks)
 		ResponseOK(w, response)
 
