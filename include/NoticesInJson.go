@@ -130,7 +130,7 @@ func DoNoticesInJsonTest(run_type string) {
 	test.Hash = GetHash()
 
 	if test.ErrorCount != 0 {
-		PostTelegrammMessage("*TEST #" + strconv.Itoa(int(test.ID)) + "*, Notices in JSON found *" + strconv.Itoa(test.ErrorCount) + "* errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
+		PostTelegrammMessage("TEST #" + strconv.Itoa(int(test.ID)) + ", Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
 	}
 
 	Db.Model(&Test{}).Update(&test)

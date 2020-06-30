@@ -20,6 +20,7 @@ const Version = "0.0.1"
 
 func main() {
 
+	//inc.Db, inc.Err = gorm.Open("sqlite3", "pmi_backup_29-06-2020.db")
 	inc.Db, inc.Err = gorm.Open("sqlite3", "pmi.db")
 	if inc.Err != nil {
 		panic("ERROR failed to connect database")
@@ -31,7 +32,7 @@ func main() {
 		log.Fatal("ERROR loading .env file")
 	}
 
-	inc.Db.LogMode(true)
+	inc.Db.LogMode(false)
 
 	inc.Db.AutoMigrate(
 		&inc.Token{},
@@ -48,6 +49,7 @@ func main() {
 		&inc.PodRamMax{},
 		&inc.PodStatNumber{},
 		&inc.PodCpuMaxByHour{},
+		&inc.CheckedNotices{},
 	)
 
 	go func() {
@@ -128,6 +130,7 @@ func handleHTTP() {
 	r.HandleFunc("/used-copy", inc.GetUsedCopy)
 	r.HandleFunc("/active-copy", inc.GetActiveCopy)
 	r.HandleFunc("/compare-tasks", inc.GetComparesTasks)
+	r.HandleFunc("/fix-playlists", inc.FixPlaylists)
 
 	r.HandleFunc("/mcc-docker-monitor", inc.APIMccDockerMonitor)
 	r.HandleFunc("/mcc-docker-monitor-replicas", inc.APIMccDockerMonitorReplicas)

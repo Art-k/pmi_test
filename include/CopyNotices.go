@@ -143,6 +143,109 @@ func GetComparesTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type CheckedNotices struct {
+	CheckedID int `gorm:"unique"`
+}
+
+func ifInArray(index int, array []int) bool {
+	for _, ind := range array {
+		if ind == index {
+			return true
+		}
+	}
+	return false
+}
+
+func FixPlaylists(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+
+		var CheckedDB []CheckedNotices
+		Db.Find(&CheckedDB)
+		var Checked []int
+		for _, ind := range CheckedDB {
+			Checked = append(Checked, ind.CheckedID)
+		}
+
+		go func() {
+
+			AllPlaylists := GetAllPlaylists(os.Getenv("USER"), os.Getenv("PASSWORD"))
+
+			for ind, playlist := range AllPlaylists {
+
+				fmt.Println("\n", ind, playlist, len(AllPlaylists))
+				plId := playlist.Id
+
+				//go func(plId int) {
+
+				AllNotices := GetAllNoticesByPlaylist(plId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+
+				for indN, notice := range AllNotices {
+
+					if ifInArray(notice.Id, Checked) {
+						fmt.Print("+")
+						continue
+					}
+
+					if notice.CreatedAt == "0000-00-00 00:00:00" {
+						fmt.Print("-")
+						continue
+					}
+
+					date := "2020-05-01"
+					t, _ := time.Parse("2006-01-02", date)
+
+					t1, err := time.Parse("2006-01-02 15:04:05", notice.CreatedAt)
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					//fmt.Println(t.Format("Jan 2, 2006 at 3:04pm (MST)"),"|", t1.Format("Jan 2, 2006 at 3:04pm (MST)"))
+
+					if t1.Before(t) {
+						fmt.Print("-")
+						continue
+					}
+
+					fmt.Print("+")
+
+					var destinationPl []DestinationPlaylists
+
+					Db.Where("notices_id = ?", notice.Id).Find(&destinationPl)
+
+					for _, dp := range destinationPl {
+
+						if dp.PlaylistId != plId {
+							was := dp.PlaylistId
+							dp.PlaylistId = plId
+							fmt.Println("\n\t\tindex", indN, "notice ID", notice.Id, "copy pl id", dp.ID, "WAS", was, "NOW", dp.PlaylistId)
+
+							Db.Model(DestinationPlaylists{}).Where("ID = ?", dp.ID).Update("playlist_id", plId)
+
+							var checked CheckedNotices
+							checked.CheckedID = notice.Id
+							Db.Create(&checked)
+
+						} else {
+
+							var checked CheckedNotices
+							checked.CheckedID = notice.Id
+							Db.Create(&checked)
+
+						}
+
+					}
+
+				}
+				//}(playlist.Id)
+			}
+		}()
+
+		ResponseOK(w, []byte(""))
+
+	}
+}
+
 func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
 	//start := time.Now()
 
@@ -196,6 +299,8 @@ func GetUsedCopy(w http.ResponseWriter, r *http.Request) {
 		}()
 		ResponseOK(w, nil)
 	case "GET":
+
+		//background := r.URL.Query().Get("background")
 
 		type historyResponseType struct {
 			Notice  DestinationPlaylists
