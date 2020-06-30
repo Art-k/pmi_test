@@ -55,6 +55,49 @@ type CopiedNoticesHistory struct {
 	Status                 string
 }
 
+func GetAllNoticesGroupBy(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+
+	case "GET":
+
+		AllPlaylists := GetAllPlaylists(os.Getenv("USER"), os.Getenv("PASSWORD"))
+
+		rows, err := Db.Table("destination_playlists").Select("playlist_id as Id, count(id) as Count").Group("playlist_id").Rows()
+		defer rows.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		type PlaylistStat struct {
+			PlaylistID   int
+			PlayListName string
+			CountCopies  int
+		}
+
+		var PlaylistStatResponse []PlaylistStat
+
+		for rows.Next() {
+			var Rec PlaylistStat
+			err := rows.Scan(&Rec.PlaylistID, &Rec.CountCopies)
+			if err != nil {
+				fmt.Println(err)
+			}
+			for _, pl := range AllPlaylists {
+				if pl.Id == Rec.PlaylistID {
+					Rec.PlayListName = pl.Title
+				}
+			}
+
+			PlaylistStatResponse = append(PlaylistStatResponse, Rec)
+		}
+
+		response, _ := json.Marshal(&PlaylistStatResponse)
+
+		ResponseOK(w, response)
+
+	}
+}
+
 func GetAllPlaylistsAsArrayOfId(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":

@@ -127,6 +127,7 @@ func handleHTTP() {
 	r.HandleFunc("/copy-notes/history/{id}", inc.FuncHistory)
 	r.HandleFunc("/copy-notes/{id}", inc.CopyNotesTask)
 	r.HandleFunc("/playlists-array", inc.GetAllPlaylistsAsArrayOfId)
+	r.HandleFunc("/playlists", inc.GetAllNoticesGroupBy)
 	r.HandleFunc("/used-copy", inc.GetUsedCopy)
 	r.HandleFunc("/active-copy", inc.GetActiveCopy)
 	r.HandleFunc("/compare-tasks", inc.GetComparesTasks)
