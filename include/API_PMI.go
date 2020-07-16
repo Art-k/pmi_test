@@ -539,19 +539,21 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefIntValue = reference.Id
 		df.NoticeIntValue = notice.Id
 		diff = append(diff, df)
-
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.Duration != notice.Schedule.Duration {
 		df.FieldName = "Schedule.Duration"
 		df.RefIntValue = reference.Schedule.Duration
 		df.NoticeIntValue = notice.Schedule.Duration
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.LocalTimeOffset != notice.Schedule.LocalTimeOffset {
 		df.FieldName = "Schedule.LocalTimeOffset"
 		df.RefIntValue = reference.Schedule.LocalTimeOffset
 		df.NoticeIntValue = notice.Schedule.LocalTimeOffset
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 
 	// uint
@@ -560,30 +562,35 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefUIntValue = reference.CategoryId
 		df.NoticeUIntValue = notice.CategoryId
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedBy != notice.CreatedBy {
 		df.FieldName = "CreatedBy"
 		df.RefUIntValue = reference.CreatedBy
 		df.NoticeUIntValue = notice.CreatedBy
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.EditedBy != notice.EditedBy {
 		df.FieldName = "EditedBy"
 		df.RefUIntValue = reference.EditedBy
 		df.NoticeUIntValue = notice.EditedBy
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.DeletedBy != notice.DeletedBy {
 		df.FieldName = "DeletedBy"
 		df.RefUIntValue = reference.DeletedBy
 		df.NoticeUIntValue = notice.DeletedBy
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedByUser.Id != notice.CreatedByUser.Id {
 		df.FieldName = "CreatedByUser.Id"
 		df.RefUIntValue = reference.CreatedByUser.Id
 		df.NoticeUIntValue = notice.CreatedByUser.Id
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 
 	// string
@@ -592,42 +599,49 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefStrValue = reference.Title
 		df.NoticeStrValue = notice.Title
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Content != notice.Content {
 		df.FieldName = "Content"
 		df.RefStrValue = reference.Content
 		df.NoticeStrValue = notice.Content
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.BackgroundColor != notice.BackgroundColor {
 		df.FieldName = "BackgroundColor"
 		df.RefStrValue = reference.BackgroundColor
 		df.NoticeStrValue = notice.BackgroundColor
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedAt != notice.CreatedAt {
 		df.FieldName = "CreatedAt"
 		df.RefStrValue = reference.CreatedAt
 		df.NoticeStrValue = notice.CreatedAt
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.EditedAt != notice.EditedAt {
 		df.FieldName = "EditedAt"
 		df.RefStrValue = reference.EditedAt
 		df.NoticeStrValue = notice.EditedAt
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.DeletedAt != notice.DeletedAt {
 		df.FieldName = "DeletedAt"
 		df.RefStrValue = reference.DeletedAt
 		df.NoticeStrValue = notice.DeletedAt
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Status != notice.Status {
 		df.FieldName = "Status"
 		df.RefStrValue = reference.Status
 		df.NoticeStrValue = notice.Status
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 
 	if reference.CreatedByUser.Login != notice.CreatedByUser.Login {
@@ -635,30 +649,35 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefStrValue = reference.CreatedByUser.Login
 		df.NoticeStrValue = notice.CreatedByUser.Login
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedByUser.AccessLevel != notice.CreatedByUser.AccessLevel {
 		df.FieldName = "CreatedByUser.AccessLevel"
 		df.RefStrValue = reference.CreatedByUser.AccessLevel
 		df.NoticeStrValue = notice.CreatedByUser.AccessLevel
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedByUser.FirstName != notice.CreatedByUser.FirstName {
 		df.FieldName = "CreatedByUser.FirstName"
 		df.RefStrValue = reference.CreatedByUser.FirstName
 		df.NoticeStrValue = notice.CreatedByUser.FirstName
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedByUser.LastName != notice.CreatedByUser.LastName {
 		df.FieldName = "CreatedByUser.LastName"
 		df.RefStrValue = reference.CreatedByUser.LastName
 		df.NoticeStrValue = notice.CreatedByUser.LastName
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedByUser.Email != notice.CreatedByUser.Email {
 		df.FieldName = "CreatedByUser.Email"
 		df.RefStrValue = reference.CreatedByUser.Email
 		df.NoticeStrValue = notice.CreatedByUser.Email
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 
 	if reference.Schedule.ActivateFrom != notice.Schedule.ActivateFrom {
@@ -666,36 +685,42 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefStrValue = reference.Schedule.ActivateFrom
 		df.NoticeStrValue = notice.Schedule.ActivateFrom
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.ActivateTo != notice.Schedule.ActivateTo {
 		df.FieldName = "Schedule.ActivateTo"
 		df.RefStrValue = reference.Schedule.ActivateTo
 		df.NoticeStrValue = notice.Schedule.ActivateTo
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.Hours != notice.Schedule.Hours {
 		df.FieldName = "Schedule.Hours"
 		df.RefStrValue = reference.Schedule.Hours
 		df.NoticeStrValue = notice.Schedule.Hours
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.Days != notice.Schedule.Days {
 		df.FieldName = "Schedule.Days"
 		df.RefStrValue = reference.Schedule.Days
 		df.NoticeStrValue = notice.Schedule.Days
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.WeekDays != notice.Schedule.WeekDays {
 		df.FieldName = "Schedule.WeekDays"
 		df.RefStrValue = reference.Schedule.WeekDays
 		df.NoticeStrValue = notice.Schedule.WeekDays
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.Month != notice.Schedule.Month {
 		df.FieldName = "Schedule.Month"
 		df.RefStrValue = reference.Schedule.Month
 		df.NoticeStrValue = notice.Schedule.Month
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 
 	// bool
@@ -704,24 +729,28 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefBoolValue = reference.Pdf
 		df.NoticeBoolValue = notice.Pdf
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Deleted != notice.Deleted {
 		df.FieldName = "Deleted"
 		df.RefBoolValue = reference.Deleted
 		df.NoticeBoolValue = notice.Deleted
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.CreatedByUser.Active != notice.CreatedByUser.Active {
 		df.FieldName = "CreatedByUser.Active"
 		df.RefBoolValue = reference.CreatedByUser.Active
 		df.NoticeBoolValue = notice.CreatedByUser.Active
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 	if reference.Schedule.Deleted != notice.Schedule.Deleted {
 		df.FieldName = "Schedule.Deleted"
 		df.RefBoolValue = reference.Schedule.Deleted
 		df.NoticeBoolValue = notice.Schedule.Deleted
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 
 	// int64
@@ -730,6 +759,7 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefInt64Value = reference.BackgroundFileId
 		df.NoticeInt64Value = notice.BackgroundFileId
 		diff = append(diff, df)
+		AddDiffToDB(df)
 	}
 
 	return diff, len(diff)
