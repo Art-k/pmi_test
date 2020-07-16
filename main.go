@@ -137,6 +137,7 @@ func handleHTTP() {
 	r.HandleFunc("/test", inc.GetTestsStatistics)
 	r.HandleFunc("/test/{id}", inc.GetTestStatistics)
 	r.HandleFunc("/fixes/{test_id}", inc.GetFixesStatistics)
+	r.HandleFunc("/diff/{notice_id}", inc.GetDiffs)
 	r.HandleFunc("/test-result/{id}", inc.GetTestResult)
 	r.HandleFunc("/ignore-pl", inc.IgnoredPlayLists)
 

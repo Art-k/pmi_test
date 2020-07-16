@@ -136,3 +136,14 @@ func GetFixesStatistics(w http.ResponseWriter, r *http.Request) {
 		ResponseOK(w, response)
 	}
 }
+
+func GetDiffs(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	switch r.Method {
+	case "GET":
+		var recs []TNoticesDiff
+		Db.Where("r_notice_id = ?", params["notice_id"]).Order("created_at asc").Find(&recs)
+		response, _ := json.Marshal(recs)
+		ResponseOK(w, response)
+	}
+}
