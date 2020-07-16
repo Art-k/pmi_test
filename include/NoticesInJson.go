@@ -97,8 +97,6 @@ func DoNoticesInJsonTest(run_type string) {
 				if ServerNotices == nil {
 					var NoticeError TestError
 
-					//TODO after test we need to run routine and update all playlists with error (test.ID)
-
 					NoticeError.TestId = test.ID
 					NoticeError.Type = "GetNoticesFromServerError"
 					NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + ") error getting json From Server"
@@ -159,8 +157,8 @@ func DoNoticesInJsonTest(run_type string) {
 	test.Hash = GetHash()
 
 	if test.ErrorCount != 0 {
-		PostTelegrammMessage("TEST " + strconv.Itoa(int(test.ID)) + ", Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
 
+		PostTelegrammMessage("TEST " + strconv.Itoa(int(test.ID)) + ", Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
 		go FixAbsentNotices(test.ID)
 
 	}
