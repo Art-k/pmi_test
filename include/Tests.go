@@ -142,7 +142,7 @@ func GetDiffs(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		var recs []TNoticesDiff
-		Db.Where("r_notice_id = ?", params["notice_id"]).Order("created_at asc").Find(&recs)
+		Db.Where("r_notice_id = ?", params["notice_id"]).Order("created_at desc").Find(&recs)
 		response, _ := json.Marshal(recs)
 		ResponseOK(w, response)
 	}
