@@ -125,3 +125,14 @@ func GetTestStatistics(w http.ResponseWriter, r *http.Request) {
 		ResponseOK(w, response)
 	}
 }
+
+func GetFixesStatistics(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	switch r.Method {
+	case "GET":
+		var recs []AbsentInJsonNotices
+		Db.Where("test_id = ?", params["test_id"]).Order("created_at asc").Find(&recs)
+		response, _ := json.Marshal(recs)
+		ResponseOK(w, response)
+	}
+}

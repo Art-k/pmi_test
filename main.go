@@ -50,12 +50,13 @@ func main() {
 		&inc.PodStatNumber{},
 		&inc.PodCpuMaxByHour{},
 		&inc.CheckedNotices{},
+		&inc.AbsentInJsonNotices{},
 	)
 
 	go func() {
 		if os.Getenv("MODE") == "DEBUG" {
 			inc.DoNoticesInJsonTest("DebugRun")
-			inc.CompareStatusesCopiedNotices("debug")
+			//inc.CompareStatusesCopiedNotices("debug")
 		} else {
 			log.SetOutput(ioutil.Discard)
 			go func() {
@@ -106,6 +107,20 @@ func main() {
 
 			}()
 
+			go func() {
+				var interval int
+				interval_str := os.Getenv("LAST_ACTIVITY_INTERVAL")
+				if interval_str != "" {
+					interval, err = strconv.Atoi(interval_str)
+					if err != nil {
+						interval = 240
+					}
+				} else {
+					interval = 240
+				}
+				inc.DoEvery(time.Duration(interval)*time.Minute, inc.GetLastActivity)
+			}()
+
 		}
 	}()
 
@@ -120,6 +135,7 @@ func handleHTTP() {
 
 	r.HandleFunc("/test", inc.GetTestsStatistics)
 	r.HandleFunc("/test/{id}", inc.GetTestStatistics)
+	r.HandleFunc("/fixes/{test_id}", inc.GetFixesStatistics)
 	r.HandleFunc("/test-result/{id}", inc.GetTestResult)
 	r.HandleFunc("/ignore-pl", inc.IgnoredPlayLists)
 

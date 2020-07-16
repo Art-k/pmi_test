@@ -1,6 +1,8 @@
 package include
 
 import (
+	"encoding/json"
+	"github.com/jinzhu/gorm"
 	"log"
 	"os"
 	"strconv"
@@ -8,6 +10,15 @@ import (
 )
 
 var NoticeInJsonTestIsRunning bool
+
+type AbsentInJsonNotices struct {
+	gorm.Model
+	TestId          uint
+	NoticeId        int
+	Fixed           bool `gorm:"default:'false'"`
+	NoticeBeforeFix string
+	NoticeAfterFix  string
+}
 
 func NoticesInJsonTest(t time.Time) {
 	if !NoticeInJsonTestIsRunning {
@@ -39,6 +50,13 @@ func DoNoticesInJsonTest(run_type string) {
 		ignoredPlaylists := GetIgnoredPlaylists()
 
 		for _, playlist := range Playlists {
+
+			if os.Getenv("DEBUG_NOTICE_UPDATE_PLAYLIST") != "" {
+				// DEBUG NOTICE, playlist is 175
+				if strconv.Itoa(playlist.Id) != os.Getenv("DEBUG_NOTICE_UPDATE_PLAYLIST") {
+					continue
+				}
+			}
 
 			log.Println("###########################################################################")
 			log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements)
@@ -78,6 +96,9 @@ func DoNoticesInJsonTest(run_type string) {
 				ServerNotices := GetServerPlaylistJson(playlist.Id)
 				if ServerNotices == nil {
 					var NoticeError TestError
+
+					//TODO after test we need to run routine and update all playlists with error (test.ID)
+
 					NoticeError.TestId = test.ID
 					NoticeError.Type = "GetNoticesFromServerError"
 					NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + ") error getting json From Server"
@@ -108,6 +129,14 @@ func DoNoticesInJsonTest(run_type string) {
 
 							linktonotice := os.Getenv("PMI_NOTICE_URL") + "#/notices/edit/" + strconv.Itoa(DBNotice.Id) + "/message"
 
+							var absentNotice AbsentInJsonNotices
+							Db.Where("test_id = ?", test.ID).Where("notice_id = ?", DBNotice.Id).Find(&absentNotice)
+							if absentNotice.ID == 0 {
+								absentNotice.TestId = test.ID
+								absentNotice.NoticeId = DBNotice.Id
+								Db.Create(&absentNotice)
+							}
+
 							var NoticeError TestError
 							NoticeError.TestId = test.ID
 							NoticeError.Type = "NoticeJSONError"
@@ -130,10 +159,49 @@ func DoNoticesInJsonTest(run_type string) {
 	test.Hash = GetHash()
 
 	if test.ErrorCount != 0 {
-		PostTelegrammMessage("TEST #" + strconv.Itoa(int(test.ID)) + ", Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
+		PostTelegrammMessage("TEST " + strconv.Itoa(int(test.ID)) + ", Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
+
+		go FixAbsentNotices(test.ID)
+
 	}
 
 	Db.Model(&Test{}).Update(&test)
 
 	NoticeInJsonTestIsRunning = false
+}
+
+func FixAbsentNotices(testId uint) {
+
+	U := os.Getenv("USER")
+	P := os.Getenv("PASSWORD")
+
+	var noticesToFix []AbsentInJsonNotices
+	Db.Where("test_id = ?", testId).Find(&noticesToFix)
+	for _, absentNotice := range noticesToFix {
+		var reference TypeNotice
+		reference = GetNoticeById(absentNotice.NoticeId, U, P)
+		referenceStr, _ := json.Marshal(&reference)
+
+		Db.Model(&AbsentInJsonNotices{}).Where("id = ?", absentNotice.ID).Update("notice_before_fix", string(referenceStr))
+		updateResult := UpdateNoticeById(absentNotice.NoticeId, reference, U, P)
+
+		if updateResult {
+			notice := GetNoticeById(absentNotice.NoticeId, U, P)
+			noticeStr, _ := json.Marshal(&reference)
+			diff, diffLength := Compare2Notices(reference, notice)
+			if diffLength != 1 {
+				PostTelegrammMessage("!!! ERROR Test ID:" + strconv.Itoa(int(testId)) + " Notice ID:" + strconv.Itoa(absentNotice.NoticeId) + " is updated but not the same")
+			} else {
+				if diff[0].FieldName != "EditedAt" {
+					PostTelegrammMessage("!!! ERROR Test ID:" + strconv.Itoa(int(testId)) + " Notice ID:" + strconv.Itoa(absentNotice.NoticeId) + " is updated but not the same")
+				}
+			}
+			PostTelegrammMessage("Test ID:" + strconv.Itoa(int(testId)) + " Notice ID:" + strconv.Itoa(absentNotice.NoticeId) + " is updated")
+			Db.Model(&AbsentInJsonNotices{}).Where("id = ?", absentNotice.ID).Update("fixed", updateResult)
+			Db.Model(&AbsentInJsonNotices{}).Where("id = ?", absentNotice.ID).Update("notice_after_fix", string(noticeStr))
+		}
+
+		time.Sleep(20 * time.Second)
+	}
+
 }
