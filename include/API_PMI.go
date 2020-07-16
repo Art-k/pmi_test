@@ -499,7 +499,14 @@ func UpdateNoticeById(noticeId int, notice TypeNotice, U, P string) bool {
 	return true
 }
 
+type TNoticesDiff struct {
+	gorm.Model
+	NoticesDiff
+}
+
 type NoticesDiff struct {
+	RNoticeId        int
+	NoticeId         int
 	FieldName        string
 	RefIntValue      int
 	NoticeIntValue   int
@@ -513,9 +520,18 @@ type NoticesDiff struct {
 	NoticeInt64Value int64
 }
 
+func AddDiffToDB(noticesDiff NoticesDiff) {
+	Df := TNoticesDiff{
+		NoticesDiff: noticesDiff,
+	}
+	Db.Create(&Df)
+}
+
 func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLength int) {
 
 	var df NoticesDiff
+	df.RNoticeId = reference.Id
+	df.NoticeId = notice.Id
 
 	// int
 	if reference.Id != notice.Id {
@@ -523,6 +539,7 @@ func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLeng
 		df.RefIntValue = reference.Id
 		df.NoticeIntValue = notice.Id
 		diff = append(diff, df)
+
 	}
 	if reference.Schedule.Duration != notice.Schedule.Duration {
 		df.FieldName = "Schedule.Duration"

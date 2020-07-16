@@ -51,6 +51,7 @@ func main() {
 		&inc.PodCpuMaxByHour{},
 		&inc.CheckedNotices{},
 		&inc.AbsentInJsonNotices{},
+		&inc.TNoticesDiff{},
 	)
 
 	go func() {
