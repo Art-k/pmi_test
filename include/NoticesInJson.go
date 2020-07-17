@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/jinzhu/gorm"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -59,7 +60,7 @@ func DoNoticesInJsonTest(run_type string) {
 			}
 
 			log.Println("###########################################################################")
-			log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements)
+			log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements, " ID :", strconv.Itoa(playlist.Id))
 
 			if playlist.Announcements == 0 {
 				log.Println("Skipped, there is no Announcements")
@@ -202,4 +203,61 @@ func FixAbsentNotices(testId uint) {
 		time.Sleep(20 * time.Second)
 	}
 
+}
+
+func UpdatePlaylists(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+
+		U := os.Getenv("USER")
+		P := os.Getenv("PASSWORD")
+		taskHash := GetHash()
+		type DoUpdate struct {
+			PlayLists    []int
+			SleepSeconds int
+		}
+
+		var incomingData DoUpdate
+		err := json.NewDecoder(r.Body).Decode(&incomingData)
+		if err != nil {
+			ResponseBadRequest(w, err, "")
+			return
+		}
+		PostTelegrammMessage(taskHash + "We need to update " + strconv.Itoa(len(incomingData.PlayLists)) + " plylists")
+
+		go func() {
+			for ind, playlistId := range incomingData.PlayLists {
+				ActiveNotices := false
+				notices := GetAllNoticesByPlaylist(playlistId, U, P)
+				for _, notice := range notices {
+					if notice.Status == "Active" {
+						ActiveNotices = true
+						n := GetNoticeById(notice.Id, U, P)
+						status := UpdateNoticeById(n.Id, n, U, P)
+						aUpdate := GetNoticeById(notice.Id, U, P)
+						Compare2Notices(n, aUpdate)
+						if status {
+							PostTelegrammMessage(taskHash + "Playlist ID: " + strconv.Itoa(playlistId) + " is updated (" +
+								strconv.Itoa(len(incomingData.PlayLists)-ind-1) + " left) waiting " +
+								strconv.Itoa(incomingData.SleepSeconds) + " seconds")
+						} else {
+							PostTelegrammMessage(taskHash + "!!! UPDATE ERROR Playlist ID: " + strconv.Itoa(playlistId) + " (" +
+								strconv.Itoa(len(incomingData.PlayLists)-ind-1) + " left) waiting " +
+								strconv.Itoa(incomingData.SleepSeconds) + " seconds")
+						}
+					}
+				}
+				if !ActiveNotices {
+					PostTelegrammMessage(taskHash + "Playlist ID: " + strconv.Itoa(playlistId) + " (" +
+						strconv.Itoa(len(incomingData.PlayLists)-ind-1) + " left) waiting " +
+						strconv.Itoa(incomingData.SleepSeconds) + " seconds")
+				}
+				log.Println("waiting")
+				time.Sleep(time.Duration(incomingData.SleepSeconds) * time.Second)
+			}
+		}()
+
+	default:
+		ResponseUnknown(w, "Method is unknown")
+	}
 }

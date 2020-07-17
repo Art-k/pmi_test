@@ -150,6 +150,7 @@ func handleHTTP() {
 	r.HandleFunc("/active-copy", inc.GetActiveCopy)
 	r.HandleFunc("/compare-tasks", inc.GetComparesTasks)
 	r.HandleFunc("/fix-playlists", inc.FixPlaylists)
+	r.HandleFunc("/update-playlists", inc.UpdatePlaylists)
 
 	r.HandleFunc("/mcc-docker-monitor", inc.APIMccDockerMonitor)
 	r.HandleFunc("/mcc-docker-monitor-replicas", inc.APIMccDockerMonitorReplicas)
