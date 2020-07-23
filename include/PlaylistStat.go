@@ -16,6 +16,8 @@ type GetPlayListStats struct {
 	DurationSec           int
 	Status                string
 	CMSResponseStatusCode int
+	PlayListCount         int
+	PlayListProcessed     int
 }
 
 type NoticeInPlaylist struct {

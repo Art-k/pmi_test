@@ -96,6 +96,11 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 		playLists := GetAllPlaylists(U, P)
 		AnalyzePlaylistsChanges(playLists)
 
+		var taskTmp GetPlayListStats
+		Db.Where("id = ?", tId).Find(&taskTmp)
+		taskTmp.PlayListCount = len(playLists)
+		Db.Save(&taskTmp)
+
 		for _, pl := range playLists {
 
 			var plLength int
@@ -216,6 +221,9 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 			dbPlayListStat.TaskID = tId
 			dbPlayListStat.PlayListStat = playListStat
 			Db.Create(&dbPlayListStat)
+
+			taskTmp.PlayListProcessed++
+			Db.Save(&taskTmp)
 
 			var noticesInPlayList []NoticeInPlaylist
 			Db.Where("play_list_id = ?", pl.Id).Find(&noticesInPlayList)
