@@ -52,6 +52,13 @@ func main() {
 		&inc.CheckedNotices{},
 		&inc.AbsentInJsonNotices{},
 		&inc.TNoticesDiff{},
+		&inc.PMINotices{},
+		&inc.TPlayListsDiff{},
+		&inc.PmiPlayList{},
+		&inc.ActivationHistory{},
+		&inc.TPlayListStat{},
+		&inc.GetPlayListStats{},
+		&inc.NoticeInPlaylist{},
 	)
 
 	go func() {
@@ -60,6 +67,23 @@ func main() {
 			//inc.CompareStatusesCopiedNotices("debug")
 		} else {
 			log.SetOutput(ioutil.Discard)
+
+			go func() {
+
+				var interval int
+				interval_str := os.Getenv("SEND_STAT_INTERVAL")
+				if interval_str != "" {
+					interval, err = strconv.Atoi(interval_str)
+					if err != nil {
+						interval = 30
+					}
+				} else {
+					interval = 30
+				}
+
+				inc.DoEvery(time.Duration(interval)*time.Minute, inc.NoticesInJsonTest)
+			}()
+
 			go func() {
 
 				var interval int
@@ -157,6 +181,7 @@ func handleHTTP() {
 	r.HandleFunc("/mcc-docker-monitor-cpu-max", inc.APIMccDockerMonitorCpuMax)
 	r.HandleFunc("/mcc-docker-monitor-ram-max", inc.APIMccDockerMonitorRamMax)
 	r.HandleFunc("/mcc-docker-monitor-replica-max", inc.APIMccDockerMonitorReplicaMax)
+	r.HandleFunc("/history/do-compare", inc.HistoryDoCompare)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {
