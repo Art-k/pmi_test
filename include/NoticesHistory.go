@@ -42,6 +42,12 @@ type PMINotices struct {
 	TypeNotice
 }
 
+func GetPlayListStatByTimer(t time.Time) {
+	if !CompareTaskIsActive {
+		SaveNoticeChanges("by timer")
+	}
+}
+
 func HistoryDoCompare(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {

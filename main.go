@@ -81,7 +81,7 @@ func main() {
 					interval = 30
 				}
 
-				inc.DoEvery(time.Duration(interval)*time.Minute, inc.NoticesInJsonTest)
+				inc.DoEvery(time.Duration(interval)*time.Minute, inc.GetPlayListStatByTimer)
 			}()
 
 			go func() {
