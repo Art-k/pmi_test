@@ -2,6 +2,7 @@ package include
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
@@ -102,6 +103,10 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 		Db.Save(&taskTmp)
 
 		for _, pl := range playLists {
+
+			if os.Getenv("MODE") != "LIVE" {
+				fmt.Println(pl.Title)
+			}
 
 			var plLength int
 			var plLengthCount int
@@ -213,7 +218,9 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 				}
 			}
 
-			playListStat.AvgActiveDays = int(plLength / plLengthCount)
+			if plLengthCount != 0 {
+				playListStat.AvgActiveDays = int(plLength / plLengthCount)
+			}
 			playListStat.MinActiveDays = plMinLength
 			playListStat.MaxActiveDays = plMaxLength
 
