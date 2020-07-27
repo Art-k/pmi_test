@@ -71,7 +71,7 @@ func HistoryDoCompare(w http.ResponseWriter, r *http.Request) {
 		}
 
 	default:
-
+		ResponseBadRequest(w, nil, "Method not found")
 	}
 
 }
@@ -86,6 +86,9 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 	CompareTaskIsActive = true
 
 	go func(tId string) {
+
+		var lastActiveNotices map[int]string
+		lastActiveNotices = make(map[int]string)
 
 		start := time.Now()
 
@@ -188,21 +191,27 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 
 				if dbNotice.Id != 0 {
 
-					diff, _ := Compare2Notices(dbNotice.TypeNotice, notice)
-					for _, di := range diff {
-						if di.FieldName == "Status" {
-							if di.RefStrValue != StatusActive && di.NoticeStrValue == StatusActive {
-								Db.Create(&ActivationHistory{
-									PlayListID: pl.Id,
-									NoticeId:   notice.Id,
-								})
-								playListStat.LastActivity = time.Now().Format("2006-01-02 15:04:05")
+					if val, ok := lastActiveNotices[notice.Id]; ok {
+						playListStat.LastActivity = val
+					} else {
+
+						diff, _ := Compare2Notices(dbNotice.TypeNotice, notice)
+						for _, di := range diff {
+							if di.FieldName == "Status" {
+								if di.RefStrValue != StatusActive && di.NoticeStrValue == StatusActive {
+									Db.Create(&ActivationHistory{
+										PlayListID: pl.Id,
+										NoticeId:   notice.Id,
+									})
+									playListStat.LastActivity = time.Now().Format("2006-01-02 15:04:05")
+									lastActiveNotices[notice.Id] = playListStat.LastActivity
+								}
 							}
 						}
-					}
-					if len(diff) != 0 {
-						dbNotice.TypeNotice = notice
-						Db.Save(&dbNotice)
+						if len(diff) != 0 {
+							dbNotice.TypeNotice = notice
+							Db.Save(&dbNotice)
+						}
 					}
 
 				} else {
@@ -215,6 +224,7 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 						})
 					}
 					playListStat.LastActivity = time.Now().Format("2006-01-02 15:04:05")
+					lastActiveNotices[notice.Id] = playListStat.LastActivity
 				}
 			}
 
