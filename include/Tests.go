@@ -54,12 +54,17 @@ func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		if !NoticeInJsonTestIsRunning {
 			go DoNoticesInJsonTest("Run Over HTTP")
+		} else {
+			ResponseBadRequest(w, nil, "Test is already running")
 		}
 		time.Sleep(1 * time.Second)
 		var test Test
 		Db.Last(&test)
 		response, _ := json.Marshal(test)
 		ResponseOK(w, response)
+	case "DELETE":
+		NoticeInJsonTestIsRunning = false
+		ResponseOK(w, []byte("NoticeInJsonTestIsRunning -> false"))
 	}
 }
 
