@@ -21,10 +21,11 @@ const (
 
 type Token struct {
 	gorm.Model
-	Token       string
-	Host        string
-	ServiceName string
-	User        string
+	Token             string
+	Host              string
+	ServiceName       string
+	User              string
+	TokenRegistration string
 }
 
 type TypeToken struct {
@@ -49,6 +50,9 @@ type TypeTokenResponse struct {
 }
 
 func GetPMITokens(user, pass string) {
+
+	var tokenRegistrationHash string
+	tokenRegistrationHash = GetHash()
 
 	requestBody, err := json.Marshal(map[string]string{
 		"login":    user,
@@ -83,6 +87,7 @@ func GetPMITokens(user, pass string) {
 		token.Host = service.Host
 		token.ServiceName = service.Name
 		token.Token = service.Response.Token
+		token.TokenRegistration = tokenRegistrationHash
 		Db.Create(&token)
 	}
 }
@@ -136,6 +141,16 @@ func GetAllPlaylists(user, pass string) []TypePlaylist {
 	}
 	request.Header.Set("Authorization", "Bearer "+AnnouncementToken)
 	resp, err := client.Do(request)
+
+	if resp.StatusCode == 401 {
+		var token Token
+		Db.Where("token = ?", token).Find(&token)
+		if token.ID != 0 {
+			Db.Delete(&Token{}, "token_registartion = ?", token.TokenRegistration)
+		}
+		return nil
+	}
+
 	defer resp.Body.Close()
 	if err != nil {
 		log.Println(err)
