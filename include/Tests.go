@@ -137,10 +137,10 @@ func GetTestStatistics(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	switch r.Method {
 	case "GET":
-		var testerrors []string
-		Db.Model(&TestError{}).Where("test_id = ?", params["id"]).Pluck("Message", &testerrors)
-		//Db.Where("test_id = ?", params["id"]).Find(&testerrors)
-		response, _ := json.Marshal(testerrors)
+		var testErrors []string
+		Db.Model(&TestError{}).Where("test_id = ?", params["id"]).Pluck("Message", &testErrors)
+		//Db.Where("test_id = ?", params["id"]).Find(&testErrors)
+		response, _ := json.Marshal(testErrors)
 		ResponseOK(w, response)
 	}
 }
