@@ -32,6 +32,13 @@ func main() {
 		log.Fatal("ERROR loading .env file")
 	}
 
+	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("ERROR opening file: %v", err)
+	}
+	defer f.Close()
+	log.SetOutput(f)
+
 	inc.Db.LogMode(false)
 
 	inc.Db.AutoMigrate(
@@ -69,10 +76,11 @@ func main() {
 			log.SetOutput(ioutil.Discard)
 
 			go func() {
-
+				inc.WL("== Set timer for Playlist Last Activity (PLA)==")
 				var interval int
 				interval_str := os.Getenv("SEND_STAT_INTERVAL")
 				if interval_str != "" {
+
 					interval, err = strconv.Atoi(interval_str)
 					if err != nil {
 						interval = 30
@@ -80,7 +88,7 @@ func main() {
 				} else {
 					interval = 30
 				}
-
+				inc.WL("PLA | " + strconv.Itoa(interval) + " minutes interval")
 				inc.DoEvery(time.Duration(interval)*time.Minute, inc.GetPlayListStatByTimer)
 			}()
 
@@ -181,6 +189,7 @@ func handleHTTP() {
 	r.HandleFunc("/mcc-docker-monitor-cpu-max", inc.APIMccDockerMonitorCpuMax)
 	r.HandleFunc("/mcc-docker-monitor-ram-max", inc.APIMccDockerMonitorRamMax)
 	r.HandleFunc("/mcc-docker-monitor-replica-max", inc.APIMccDockerMonitorReplicaMax)
+
 	r.HandleFunc("/history/do-compare", inc.HistoryDoCompare)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")

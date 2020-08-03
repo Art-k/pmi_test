@@ -44,7 +44,9 @@ type PMINotices struct {
 }
 
 func GetPlayListStatByTimer(t time.Time) {
+	WL("PLA | The current task status is : " + strconv.FormatBool(CompareTaskIsActive))
 	if !CompareTaskIsActive {
+		WL("PLA | get last active changes")
 		SaveNoticeChanges("by timer")
 	}
 }
@@ -82,11 +84,13 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 	task.RunType = runType
 	task.Status = "In Progress"
 	Db.Create(&task)
+	WL("PLA | Task is created, task ID is " + task.ID)
 
 	CompareTaskIsActive = true
+	WL("PLA | Flag set to " + strconv.FormatBool(CompareTaskIsActive))
 
 	go func(tId string) {
-
+		WL("PLA (" + tId + ") | Start routine")
 		var lastActiveNotices map[int]string
 		lastActiveNotices = make(map[int]string)
 
@@ -97,14 +101,18 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 		U := os.Getenv("USER")
 		P := os.Getenv("PASSWORD")
 
+		WL("PLA (" + tId + ") | Get Playlists")
 		playLists := GetAllPlaylists(U, P)
+		WL("PLA (" + tId + ") | Analyze Playlists Changes")
 		AnalyzePlaylistsChanges(playLists)
 
 		var taskTmp GetPlayListStats
 		Db.Where("id = ?", tId).Find(&taskTmp)
 		taskTmp.PlayListCount = len(playLists)
 		Db.Save(&taskTmp)
+		WL("PLA (" + tId + ") | PlayList count Saved to DB " + strconv.Itoa(taskTmp.PlayListCount))
 
+		WL("PLA (" + tId + ") | Go thought playlists and check notices")
 		for _, pl := range playLists {
 
 			if os.Getenv("MODE") != "LIVE" {
@@ -124,10 +132,13 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 				}
 			}
 
+			WL("PLA (" + tId + ") | Playlist is '" + pl.Title + "' (" + strconv.Itoa(pl.Id) + ")")
+
 			var playListStat PlayListStat
 			playListStat.PlayListId = pl.Id
 			playListStat.PlayListName = pl.Title
 
+			WL("PLA (" + tId + ") | Get All Notices")
 			notices := GetAllNoticesByPlaylist(pl.Id, U, P)
 			for _, notice := range notices {
 
@@ -140,18 +151,22 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 					Db.Create(&noticeInPlaylist)
 				}
 
+				WL("PLA (" + tId + ") | check Advance Scheduling")
 				if notice.Schedule.Hours != "" || notice.Schedule.Days != "" || notice.Schedule.Month != "" || notice.Schedule.WeekDays != "" {
 					playListStat.NumberOfAdvancedScheduled++
 				}
 
+				WL("PLA (" + tId + ") | check No Expiration Date")
 				if notice.Schedule.ActivateTo == "0000-00-00 00:00:00" {
 					playListStat.NumberOfForeverNotices++
 				}
 
+				WL("PLA (" + tId + ") | check is PDF")
 				if notice.Pdf {
 					playListStat.NumberOfPDFNotices++
 				}
 
+				WL("PLA (" + tId + ") | check Status")
 				switch notice.Status {
 				case StatusActive:
 					playListStat.NumberOfActiveNotices++
@@ -186,7 +201,6 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 				}
 
 				var dbNotice PMINotices
-
 				Db.Unscoped().Where("id = ?", notice.Id).Find(&dbNotice)
 
 				if dbNotice.Id != 0 {

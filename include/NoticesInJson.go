@@ -40,38 +40,45 @@ func DoNoticesInJsonTest(run_type string) {
 	U := os.Getenv("USER")
 	P := os.Getenv("PASSWORD")
 
+	WL("(NIJ) | Get All Playlists")
 	Playlists := GetAllPlaylists(U, P)
 	if Playlists == nil {
 
 		test.Status = "ERROR"
 		test.Description = "Unable to get List of Playlist"
+		WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Unable to get PlayList from server")
 
 	} else {
-
+		WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Get Playlists which are ignored")
 		ignoredPlaylists := GetIgnoredPlaylists()
 
 		for _, playlist := range Playlists {
 
 			if os.Getenv("DEBUG_NOTICE_UPDATE_PLAYLIST") != "" {
 				// DEBUG NOTICE, playlist is 175
+				WL("(NIJ) | We are in DEBUG MODE")
 				if strconv.Itoa(playlist.Id) != os.Getenv("DEBUG_NOTICE_UPDATE_PLAYLIST") {
 					continue
 				}
 			}
 
-			log.Println("###########################################################################")
-			log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements, " ID :", strconv.Itoa(playlist.Id))
+			WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Playlist Title : '" + playlist.Title + "' Announcements Count : " + strconv.Itoa(playlist.Announcements) + " ID :" + strconv.Itoa(playlist.Id))
+			//log.Println("###########################################################################")
+			//log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements, " ID :", strconv.Itoa(playlist.Id))
 
 			if playlist.Announcements == 0 {
-				log.Println("Skipped, there is no Announcements")
+				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Skipped, there is no announcements")
+				//log.Println("Skipped, there is no Announcements")
 				continue
 			}
 
 			if IfExists(ignoredPlaylists, playlist.Id) {
+				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Skipped, playlist marked as IGNORE")
 				test.PlayListsIgnored++
 				continue
 			}
 
+			WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Get All notices from playlist")
 			DBNotices := GetAllNoticesByPlaylist(playlist.Id, U, P)
 			if DBNotices == nil {
 				var NoticeError TestError
@@ -80,11 +87,14 @@ func DoNoticesInJsonTest(run_type string) {
 				NoticeError.Message = "Playlist :'" + playlist.Title + "' error getting Notices"
 				Db.Create(&NoticeError)
 				test.ErrorCount += 1
+				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Error getting Notices")
 				continue
 			} else {
-				log.Println("Found in DB " + strconv.Itoa(len(DBNotices)) + " notices")
+				//log.Println("Found in DB " + strconv.Itoa(len(DBNotices)) + " notices")
+				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Found in DB " + strconv.Itoa(len(DBNotices)) + " notices")
 			}
 
+			WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Check if at least one notice is active")
 			var activeIsHere bool
 			for _, notice := range DBNotices {
 				if notice.Status == "active" {
@@ -94,6 +104,7 @@ func DoNoticesInJsonTest(run_type string) {
 			}
 
 			if activeIsHere {
+				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | We have active notices, lets check JSON")
 				ServerNotices := GetServerPlaylistJson(playlist.Id)
 				if ServerNotices == nil {
 					var NoticeError TestError
@@ -103,10 +114,14 @@ func DoNoticesInJsonTest(run_type string) {
 					NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + ") error getting json From Server"
 					Db.Create(&NoticeError)
 					test.ErrorCount += 1
+					WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | can't get json from server")
 					continue
 				} else {
 					log.Println("Found on server " + strconv.Itoa(len(ServerNotices)) + " notices")
+					WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Found on server " + strconv.Itoa(len(ServerNotices)) + " notices")
 				}
+
+				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Compare DB and JSON")
 
 				var NoticeFound bool
 				for _, DBNotice := range DBNotices {
@@ -151,6 +166,7 @@ func DoNoticesInJsonTest(run_type string) {
 				test.PlayListsTested++
 			}
 		}
+		WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Test completed")
 		test.Status = "Completed"
 	}
 
@@ -163,10 +179,10 @@ func DoNoticesInJsonTest(run_type string) {
 		go FixAbsentNotices(test.ID)
 
 	}
-
+	WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Update test task in DB")
 	Db.Model(&Test{}).Update(&test)
-
 	NoticeInJsonTestIsRunning = false
+	WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Flag NoticeInJsonTestIsRunning set to " + strconv.FormatBool(NoticeInJsonTestIsRunning))
 }
 
 func FixAbsentNotices(testId uint) {

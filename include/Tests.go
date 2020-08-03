@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -47,24 +48,37 @@ func GetIgnoredPlaylists() []int {
 func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
+
 		var tests []Test
 		Db.Order("created_at desc").Limit(100).Find(&tests)
 		response, _ := json.Marshal(tests)
 		ResponseOK(w, response)
+
 	case "POST":
+
+		WL("Check if all notices are in jsons (NIJ)")
+		WL("(NIJ) | The Current task state is " + strconv.FormatBool(NoticeInJsonTestIsRunning))
 		if !NoticeInJsonTestIsRunning {
+			WL("(NIJ) | Do go routine")
 			go DoNoticesInJsonTest("Run Over HTTP")
 		} else {
+			WL("(NIJ) | System is Busy, please wait")
 			ResponseBadRequest(w, nil, "Test is already running")
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(5 * time.Second)
+
+		WL("(NIJ) | Respond task data")
+
 		var test Test
 		Db.Last(&test)
 		response, _ := json.Marshal(test)
 		ResponseOK(w, response)
+
 	case "DELETE":
+
 		NoticeInJsonTestIsRunning = false
 		ResponseOK(w, []byte("NoticeInJsonTestIsRunning -> false"))
+
 	}
 }
 

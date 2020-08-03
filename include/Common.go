@@ -3,11 +3,19 @@ package include
 import (
 	"github.com/jinzhu/gorm"
 	guuid "github.com/satori/go.uuid"
+	"log"
+	"os"
 	"time"
 )
 
 var Db *gorm.DB
 var Err error
+
+func WL(msg string) {
+	if os.Getenv("LOG") == "1" {
+		log.Println(msg)
+	}
+}
 
 func GetHash() string {
 	id, _ := guuid.NewV4()
