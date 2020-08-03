@@ -7,7 +7,6 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/joho/godotenv"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -73,7 +72,7 @@ func main() {
 			inc.DoNoticesInJsonTest("DebugRun")
 			//inc.CompareStatusesCopiedNotices("debug")
 		} else {
-			log.SetOutput(ioutil.Discard)
+			//log.SetOutput(ioutil.Discard)
 
 			go func() {
 				inc.WL("== Set timer for Playlist Last Activity (PLA)==")
