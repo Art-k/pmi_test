@@ -10,7 +10,12 @@ import (
 	"time"
 )
 
-var NoticeInJsonTestIsRunning bool
+type NoticeInJsonTestState struct {
+	State   bool
+	LastRun time.Time
+}
+
+var NoticeInJsonTestIsRunning NoticeInJsonTestState
 
 type AbsentInJsonNotices struct {
 	gorm.Model
@@ -22,14 +27,15 @@ type AbsentInJsonNotices struct {
 }
 
 func NoticesInJsonTest(t time.Time) {
-	if !NoticeInJsonTestIsRunning {
+	if !NoticeInJsonTestIsRunning.State {
 		DoNoticesInJsonTest("auto")
 	}
 }
 
 func DoNoticesInJsonTest(run_type string) {
 
-	NoticeInJsonTestIsRunning = true
+	NoticeInJsonTestIsRunning.State = true
+	NoticeInJsonTestIsRunning.LastRun = time.Now()
 
 	start := time.Now()
 
@@ -181,8 +187,8 @@ func DoNoticesInJsonTest(run_type string) {
 	}
 	WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Update test task in DB")
 	Db.Model(&Test{}).Update(&test)
-	NoticeInJsonTestIsRunning = false
-	WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Flag NoticeInJsonTestIsRunning set to " + strconv.FormatBool(NoticeInJsonTestIsRunning))
+	NoticeInJsonTestIsRunning.State = false
+	WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Flag NoticeInJsonTestIsRunning set to " + strconv.FormatBool(NoticeInJsonTestIsRunning.State))
 }
 
 func FixAbsentNotices(testId uint) {

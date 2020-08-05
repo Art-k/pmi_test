@@ -57,8 +57,8 @@ func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 
 		WL("Check if all notices are in jsons (NIJ)")
-		WL("(NIJ) | The Current task state is " + strconv.FormatBool(NoticeInJsonTestIsRunning))
-		if !NoticeInJsonTestIsRunning {
+		WL("(NIJ) | The Current task state is " + strconv.FormatBool(NoticeInJsonTestIsRunning.State))
+		if !NoticeInJsonTestIsRunning.State {
 			WL("(NIJ) | Do go routine")
 			go DoNoticesInJsonTest("Run Over HTTP")
 		} else {
@@ -76,7 +76,7 @@ func GetTestsStatistics(w http.ResponseWriter, r *http.Request) {
 
 	case "DELETE":
 
-		NoticeInJsonTestIsRunning = false
+		NoticeInJsonTestIsRunning.State = false
 		ResponseOK(w, []byte("NoticeInJsonTestIsRunning -> false"))
 
 	}

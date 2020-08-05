@@ -25,6 +25,6 @@ func GetLastActivity(t time.Time) {
 
 func DoGetLastActivity(run_type string) {
 
-	NoticeInJsonTestIsRunning = true
+	//NoticeInJsonTestIsRunning = true
 
 }
