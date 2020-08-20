@@ -143,7 +143,18 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 			for _, notice := range notices {
 
 				var noticeInPlaylist NoticeInPlaylist
-				Db.Where("play_list_id = ?", pl.Id).
+				var noticesInPlaylist []NoticeInPlaylist
+
+				// HERE we are trying to remove error, it is temporary code TODO need to remove it in the future
+				Db.Where("p_lay_list_id = ?", pl.Id).
+					Where("notice_id = ?", notice.Id).Find(&noticesInPlaylist)
+				if len(noticesInPlaylist) > 1 {
+					log.Println("We need to remove ", len(noticesInPlaylist)-1, " duplicates")
+					noticesInPlaylist = noticesInPlaylist[:len(noticesInPlaylist)-1]
+					Db.Unscoped().Delete(&noticesInPlaylist)
+				}
+
+				Db.Where("p_lay_list_id = ?", pl.Id).
 					Where("notice_id = ?", notice.Id).Find(&noticeInPlaylist)
 				if noticeInPlaylist.ID == "" {
 					noticeInPlaylist.PLayListId = pl.Id
