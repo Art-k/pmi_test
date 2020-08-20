@@ -19,17 +19,28 @@ const Version = "0.0.1"
 
 func main() {
 
-	//inc.Db, inc.Err = gorm.Open("sqlite3", "pmi_backup_29-06-2020.db")
-	inc.Db, inc.Err = gorm.Open("sqlite3", "pmi.db")
-	if inc.Err != nil {
-		panic("ERROR failed to connect database")
-	}
-	defer inc.Db.Close()
-
 	err := godotenv.Load("p.env")
 	if err != nil {
 		log.Fatal("ERROR loading .env file")
 	}
+
+	if os.Getenv("DB_PATH") == "" {
+
+		//inc.Db, inc.Err = gorm.Open("sqlite3", "pmi_backup_29-06-2020.db")
+		inc.Db, inc.Err = gorm.Open("sqlite3", "pmi.db")
+		if inc.Err != nil {
+			panic("ERROR failed to connect database")
+		}
+
+	} else {
+
+		inc.Db, inc.Err = gorm.Open("sqlite3", os.Getenv("DB_PATH")+"pmi.db")
+		if inc.Err != nil {
+			panic("ERROR failed to connect database")
+		}
+
+	}
+	defer inc.Db.Close()
 
 	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
