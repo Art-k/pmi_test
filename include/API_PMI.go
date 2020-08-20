@@ -547,6 +547,18 @@ func AddNoticesDiffToDB(noticesDiff NoticesDiff) {
 		NoticesDiff: noticesDiff,
 	}
 	Db.Create(&Df)
+
+	var count int
+	Db.Model(&TNoticesDiff{}).Count(&count)
+	if count > 3000000 {
+		//needToDeleteCount := count - 2000000
+		needToDeleteCount := 1000000
+		//var nDiff []TNoticesDiff
+		//Db.Model(&TNoticesDiff{}).Order("created_at|ASC").Limit(needToDeleteCount).Count(&count)
+		//Db.Order("created_at|ASC").Limit(needToDeleteCount).Unscoped().Delete(&TNoticesDiff{})
+		Db.Exec("delete from t_notices_diffs where id IN (SELECT id from t_notices_diffs order by id desc limit " + strconv.Itoa(needToDeleteCount) + ")")
+		log.Println("Deleted ", needToDeleteCount, "records")
+	}
 }
 
 func Compare2Notices(reference, notice TypeNotice) (diff []NoticesDiff, diffLength int) {

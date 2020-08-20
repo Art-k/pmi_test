@@ -38,7 +38,7 @@ func main() {
 	defer f.Close()
 	log.SetOutput(f)
 
-	inc.Db.LogMode(false)
+	inc.Db.LogMode(true)
 
 	inc.Db.AutoMigrate(
 		&inc.Token{},

@@ -151,7 +151,8 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 				if len(noticesInPlaylist) > 1 {
 					log.Println("We need to remove ", len(noticesInPlaylist)-1, " duplicates")
 					noticesInPlaylist = noticesInPlaylist[:len(noticesInPlaylist)-1]
-					Db.Unscoped().Delete(&noticesInPlaylist)
+					Db.Unscoped().Where("p_lay_list_id = ?", pl.Id).
+						Where("notice_id = ?", notice.Id).Delete(&noticesInPlaylist)
 				}
 
 				Db.Where("p_lay_list_id = ?", pl.Id).
