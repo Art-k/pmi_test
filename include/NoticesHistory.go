@@ -3,6 +3,7 @@ package include
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
@@ -49,6 +50,48 @@ func GetPlayListStatByTimer(t time.Time) {
 		WL("PLA | get last active changes")
 		SaveNoticeChanges("by timer")
 	}
+}
+
+func SendPlaylistActivityToCMS(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+		params := mux.Vars(r)
+		var recs []TPlayListStat
+		Db.Where("task_id = ?", params["task_id"]).Find(&recs)
+		if len(recs) == 0 {
+			ResponseNotFound(w)
+			return
+		}
+		var stats []PlayListStat
+		for _, rec := range recs {
+			var stat PlayListStat
+			stat = rec.PlayListStat
+			stats = append(stats, stat)
+		}
+		PostPlayListStatToCMS(params["task_id"], stats)
+
+	default:
+		ResponseBadRequest(w, nil, "Method not found")
+	}
+}
+func GetLastPlaylistActivity(w http.ResponseWriter, r *http.Request) {
+
+	switch r.Method {
+	case "GET":
+		params := mux.Vars(r)
+		var recs []TPlayListStat
+		Db.Where("task_id = ?", params["task_id"]).Find(&recs)
+
+		response, err := json.Marshal(recs)
+		if err != nil {
+			ResponseNotFound(w)
+		}
+		ResponseOK(w, response)
+
+	default:
+		ResponseBadRequest(w, nil, "Method not found")
+	}
+
 }
 
 func HistoryDoCompare(w http.ResponseWriter, r *http.Request) {

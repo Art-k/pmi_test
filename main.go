@@ -201,6 +201,8 @@ func handleHTTP() {
 	r.HandleFunc("/mcc-docker-monitor-replica-max", inc.APIMccDockerMonitorReplicaMax)
 
 	r.HandleFunc("/history/do-compare", inc.HistoryDoCompare)
+	r.HandleFunc("/last-activity/{task_id}", inc.GetLastPlaylistActivity)
+	r.HandleFunc("/last-activity-to-cms/{task_id}", inc.SendPlaylistActivityToCMS)
 
 	fmt.Printf("Starting Server to HANDLE pmi-test.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {
