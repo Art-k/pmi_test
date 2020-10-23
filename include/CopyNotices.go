@@ -145,19 +145,22 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 
 		U := os.Getenv("USER")
 		P := os.Getenv("PASSWORD")
-
+		log.Println("Delete Task ", params["id"])
 		Db.Where("task_id = ?", params["id"]).Select("task_id", "playlist_id", "notices_id").Order("notices_id asc").Find(&notices)
-
+		log.Println("We need to delete ", len(notices))
 		go func(ID string, list []DestinationPlaylists) {
 			PostTelegrammMessage(ID + " task DELETE is started")
-			for _, notice := range list {
-
+			for ind, notice := range list {
+				log.Println("Try to delete ", ind, " notice ", notice.NoticesId, " from playlist ", notice.PlaylistId)
 				currentPlaylistNotice := GetNoticeById(notice.NoticesId, U, P)
 
 				if currentPlaylistNotice.Status == "expired" {
 					msg, err := DeleteNoticeById(notice.NoticesId, U, P)
+
 					if err != nil {
+
 						log.Println(err)
+
 					} else {
 						notice.DeletedMessage = msg
 						notice.IsDeleted = true
@@ -168,6 +171,7 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 						rec.Deleted++
 						Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
 						time.Sleep(250 * time.Millisecond)
+						log.Println("Notice is Deleted")
 					}
 				} else {
 					log.Println("ERROR -> NOTICE ID :", notice.NoticesId, " can't delete, status is changed PLAYLIST ID: ", notice.PlaylistId)
