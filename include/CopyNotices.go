@@ -118,8 +118,12 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 
 	case "GET":
+
 		var destination []DestinationPlaylists
-		Db.Where("task_id = ?", params["id"]).Select("task_id", "playlist_id", "notices_id", "is_deleted").Order("notices_id asc").Find(&destination)
+		err := Db.Where("task_id = ?", params["id"]).Select("task_id", "playlist_id", "notices_id", "is_deleted").Order("notices_id asc").Find(&destination).Error
+		if err != nil {
+			log.Println(err)
+		}
 
 		type OneTaskResponse struct {
 			Total   int
