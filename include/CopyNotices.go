@@ -151,19 +151,25 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 		go func(ID string, list []DestinationPlaylists) {
 			PostTelegrammMessage(ID + " task DELETE is started")
 			for _, notice := range list {
-				msg, err := DeleteNoticeById(notice.NoticesId, U, P)
-				if err != nil {
-					log.Println(err)
+
+				currentPlaylistNotice := GetNoticeById(notice.NoticesId, U, P)
+				if currentPlaylistNotice.Status == "expired" {
+					msg, err := DeleteNoticeById(notice.NoticesId, U, P)
+					if err != nil {
+						log.Println(err)
+					} else {
+						notice.DeletedMessage = msg
+						notice.IsDeleted = true
+						Db.Model(&DestinationPlaylists{}).Where("id = ?", notice.ID).Update(&notice)
+						//Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
+						var rec CopyNoticesToPlaylistsTask
+						Db.Where("id = ?", notice.TaskId).Find(&rec)
+						rec.Deleted++
+						Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
+						time.Sleep(250 * time.Millisecond)
+					}
 				} else {
-					notice.DeletedMessage = msg
-					notice.IsDeleted = true
-					Db.Model(&DestinationPlaylists{}).Where("id = ?", notice.ID).Update(&notice)
-					//Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
-					var rec CopyNoticesToPlaylistsTask
-					Db.Where("id = ?", notice.TaskId).Find(&rec)
-					rec.Deleted++
-					Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
-					time.Sleep(250 * time.Millisecond)
+					log.Println("ERROR -> NOTICE ID :", notice.NoticesId, " can't delete, status is changed")
 				}
 			}
 			PostTelegrammMessage(ID + " task DELETE is completed successfully")
