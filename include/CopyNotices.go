@@ -146,13 +146,14 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 		U := os.Getenv("USER")
 		P := os.Getenv("PASSWORD")
 
-		Db.Where("task_id = ?", params["id"]).Order("notices_id asc").Find(&notices)
+		Db.Where("task_id = ?", params["id"]).Select("task_id", "playlist_id", "notices_id").Order("notices_id asc").Find(&notices)
 
 		go func(ID string, list []DestinationPlaylists) {
 			PostTelegrammMessage(ID + " task DELETE is started")
 			for _, notice := range list {
 
 				currentPlaylistNotice := GetNoticeById(notice.NoticesId, U, P)
+
 				if currentPlaylistNotice.Status == "expired" {
 					msg, err := DeleteNoticeById(notice.NoticesId, U, P)
 					if err != nil {
@@ -169,7 +170,7 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 						time.Sleep(250 * time.Millisecond)
 					}
 				} else {
-					log.Println("ERROR -> NOTICE ID :", notice.NoticesId, " can't delete, status is changed")
+					log.Println("ERROR -> NOTICE ID :", notice.NoticesId, " can't delete, status is changed PLAYLIST ID: ", notice.PlaylistId)
 				}
 			}
 			PostTelegrammMessage(ID + " task DELETE is completed successfully")
