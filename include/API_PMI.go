@@ -102,6 +102,12 @@ func GetServiceToken(service, user, pass string) string {
 			GetPMITokens(user, pass)
 			time.Sleep(10 * time.Second)
 			attempt++
+		} else {
+			if token.CreatedAt.Before(time.Now().AddDate(0, 0, -14)) {
+				GetPMITokens(user, pass)
+				time.Sleep(10 * time.Second)
+				attempt++
+			}
 		}
 		if attempt > max_attempt {
 			return ""

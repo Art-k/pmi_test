@@ -2,6 +2,7 @@ package include
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
@@ -67,7 +68,7 @@ func DoNoticesInJsonTest(run_type string) {
 					continue
 				}
 			}
-
+			// "NIJ" Not In JSON
 			WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Playlist Title : '" + playlist.Title + "' Announcements Count : " + strconv.Itoa(playlist.Announcements) + " ID :" + strconv.Itoa(playlist.Id))
 			//log.Println("###########################################################################")
 			//log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements, " ID :", strconv.Itoa(playlist.Id))
@@ -130,9 +131,11 @@ func DoNoticesInJsonTest(run_type string) {
 				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Compare DB and JSON")
 
 				var NoticeFound bool
+				var TimeIsCorrect bool
 				for _, DBNotice := range DBNotices {
 					if DBNotice.Status == "active" {
 						NoticeFound = false
+						TimeIsCorrect = true
 						log.Println("==================================================")
 						log.Println(DBNotice.Title)
 						log.Println("Start :", DBNotice.Schedule.ActivateFrom)
@@ -140,11 +143,58 @@ func DoNoticesInJsonTest(run_type string) {
 						for _, ServerNotice := range ServerNotices {
 							if ServerNotice.PageId == DBNotice.Id {
 								NoticeFound = true
+
+								var err error
+								var serverNoticeStart time.Time
+								var pmiNoticeStart time.Time
+								var serverNoticeEnd time.Time
+								var pmiNoticeEnd time.Time
+
+								if DBNotice.Schedule.ActivateFrom != "0000-00-00 00:00:00" {
+
+									serverNoticeStart, err = time.Parse("2006-01-02 15:04:05", ServerNotice.ActivateStart)
+									if err != nil {
+										fmt.Printf("serverNoticeStart Got an error %s ", err)
+									}
+
+									pmiNoticeStart, err = time.Parse("2006-01-02 15:04:05", DBNotice.Schedule.ActivateFrom)
+									if err != nil {
+										fmt.Printf("pmiNoticeStart Got an error %s ", err)
+									}
+
+									if ServerNotice.ActivateStart != DBNotice.Schedule.ActivateFrom {
+										correctedTime := serverNoticeStart.Add(time.Duration(DBNotice.Schedule.LocalTimeOffset) * time.Minute)
+										if !pmiNoticeStart.Equal(correctedTime) {
+											TimeIsCorrect = false
+										}
+									}
+
+									if DBNotice.Schedule.ActivateTo != "0000-00-00 00:00:00" && ServerNotice.ActivateEnd != "2030-01-01 00:00:00" {
+
+										serverNoticeEnd, err = time.Parse("2006-01-02 15:04:05", ServerNotice.ActivateStart)
+										if err != nil {
+											fmt.Printf("Got an error %s ", err)
+										}
+
+										pmiNoticeEnd, err = time.Parse("2006-01-02 15:04:05", DBNotice.Schedule.ActivateFrom)
+										if err != nil {
+											fmt.Printf("Got an error %s ", err)
+										}
+
+										if ServerNotice.ActivateEnd != DBNotice.Schedule.ActivateTo {
+											correctedTime := serverNoticeEnd.Add(time.Duration(DBNotice.Schedule.LocalTimeOffset) * time.Minute)
+											if !pmiNoticeEnd.Equal(correctedTime) {
+												TimeIsCorrect = false
+											}
+										}
+									}
+								}
+
 								break
 							}
 						}
 
-						if !NoticeFound {
+						if !NoticeFound || !TimeIsCorrect {
 							log.Println("Notice '" + DBNotice.Title + "' not found in JSON")
 
 							linktonotice := os.Getenv("PMI_NOTICE_URL") + "#/notices/edit/" + strconv.Itoa(DBNotice.Id) + "/message"
@@ -156,16 +206,36 @@ func DoNoticesInJsonTest(run_type string) {
 								absentNotice.NoticeId = DBNotice.Id
 								Db.Create(&absentNotice)
 							}
-
 							var NoticeError TestError
-							NoticeError.TestId = test.ID
-							NoticeError.Type = "NoticeJSONError"
 
-							NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + "), Notice ID : " + strconv.Itoa(DBNotice.Id) +
-								" is not found in JSON, link to notice <a href=\"" + strconv.Itoa(DBNotice.Id) + "\">" + linktonotice + "</a>"
+							if !TimeIsCorrect {
+								//var NoticeError TestError
+								//NoticeError.TestId = test.ID
+								//NoticeError.Type = "NoticeJSONTimeError"
 
-							Db.Create(&NoticeError)
-							test.ErrorCount += 1
+								NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + "), Notice ID : " + strconv.Itoa(DBNotice.Id) +
+									" time is not correct in JSON, link to notice"
+
+								PostTelegrammMessage(NoticeError.Message)
+
+								//Db.Create(&NoticeError)
+								test.ErrorCount += 1
+							}
+
+							if NoticeError.ID != 0 {
+								if !NoticeFound {
+
+									NoticeError.TestId = test.ID
+									NoticeError.Type = "NoticeJSONError"
+
+									NoticeError.Message = "Playlist :'" + playlist.Title + "' (" + strconv.Itoa(playlist.Id) + "), Notice ID : " + strconv.Itoa(DBNotice.Id) +
+										" is not found in JSON, link to notice <a href=\"" + strconv.Itoa(DBNotice.Id) + "\">" + linktonotice + "</a>"
+
+									Db.Create(&NoticeError)
+									test.ErrorCount += 1
+								}
+							}
+
 						}
 					}
 				}
@@ -181,7 +251,7 @@ func DoNoticesInJsonTest(run_type string) {
 
 	if test.ErrorCount != 0 {
 
-		PostTelegrammMessage("TEST " + strconv.Itoa(int(test.ID)) + ", Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
+		//PostTelegrammMessage("TEST " + strconv.Itoa(int(test.ID)) + ", Notices in JSON found " + strconv.Itoa(test.ErrorCount) + " errors, listed below. Please find it here [link](https://pmi-test.maxtv.tech/test-result/" + test.Hash + ")")
 		go FixAbsentNotices(test.ID)
 
 	}
@@ -192,6 +262,8 @@ func DoNoticesInJsonTest(run_type string) {
 }
 
 func FixAbsentNotices(testId uint) {
+
+	// TODO добавить обработку того что может быть 2 одинаковых ID в одном тесте
 
 	U := os.Getenv("USER")
 	P := os.Getenv("PASSWORD")
@@ -210,21 +282,19 @@ func FixAbsentNotices(testId uint) {
 			notice := GetNoticeById(absentNotice.NoticeId, U, P)
 			noticeStr, _ := json.Marshal(&reference)
 			diff, diffLength := Compare2Notices(reference, notice)
-			if diffLength != 1 {
+			if diffLength != 2 {
 				PostTelegrammMessage("!!! ERROR Test ID:" + strconv.Itoa(int(testId)) + " Notice ID:" + strconv.Itoa(absentNotice.NoticeId) + " is updated but not the same")
 			} else {
 				if diff[0].FieldName != "EditedAt" {
 					PostTelegrammMessage("!!! ERROR Test ID:" + strconv.Itoa(int(testId)) + " Notice ID:" + strconv.Itoa(absentNotice.NoticeId) + " is updated but not the same")
 				}
 			}
-			PostTelegrammMessage("Test ID:" + strconv.Itoa(int(testId)) + " Notice ID:" + strconv.Itoa(absentNotice.NoticeId) + " is updated")
+			//PostTelegrammMessage("Test ID:" + strconv.Itoa(int(testId)) + " Notice ID:" + strconv.Itoa(absentNotice.NoticeId) + " is updated")
 			Db.Model(&AbsentInJsonNotices{}).Where("id = ?", absentNotice.ID).Update("fixed", updateResult)
 			Db.Model(&AbsentInJsonNotices{}).Where("id = ?", absentNotice.ID).Update("notice_after_fix", string(noticeStr))
 		}
-
 		time.Sleep(20 * time.Second)
 	}
-
 }
 
 func UpdatePlaylists(w http.ResponseWriter, r *http.Request) {

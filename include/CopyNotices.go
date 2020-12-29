@@ -120,7 +120,7 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 
 		var destination []DestinationPlaylists
-		err := Db.Where("task_id = ?", params["id"]).Select("task_id", "playlist_id", "notices_id", "is_deleted").Order("notices_id asc").Find(&destination).Error
+		err := Db.Where("task_id = ?", params["id"]).Order("notices_id asc").Find(&destination).Error
 		if err != nil {
 			log.Println(err)
 		}
