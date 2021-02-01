@@ -69,6 +69,13 @@ func DoNoticesInJsonTest(run_type string) {
 				}
 			}
 			// "NIJ" Not In JSON
+
+			if IfExists(ignoredPlaylists, playlist.Id) {
+				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Skipped, playlist marked as IGNORE")
+				test.PlayListsIgnored++
+				continue
+			}
+
 			WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | ID : " + strconv.Itoa(playlist.Id) + " Playlist Title : '" + playlist.Title + "' Announcements Count : " + strconv.Itoa(playlist.Announcements))
 			//log.Println("###########################################################################")
 			//log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements, " ID :", strconv.Itoa(playlist.Id))
@@ -76,12 +83,6 @@ func DoNoticesInJsonTest(run_type string) {
 			if playlist.Announcements == 0 {
 				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Skipped, there is no announcements")
 				//log.Println("Skipped, there is no Announcements")
-				continue
-			}
-
-			if IfExists(ignoredPlaylists, playlist.Id) {
-				WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Skipped, playlist marked as IGNORE")
-				test.PlayListsIgnored++
 				continue
 			}
 
