@@ -69,7 +69,7 @@ func DoNoticesInJsonTest(run_type string) {
 				}
 			}
 			// "NIJ" Not In JSON
-			WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | " + strconv.Itoa(playlist.Id) + "Playlist Title : '" + playlist.Title + "' Announcements Count : " + strconv.Itoa(playlist.Announcements))
+			WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | ID : " + strconv.Itoa(playlist.Id) + " Playlist Title : '" + playlist.Title + "' Announcements Count : " + strconv.Itoa(playlist.Announcements))
 			//log.Println("###########################################################################")
 			//log.Println("Playlist Title : '"+playlist.Title+"' Announcements Count : ", playlist.Announcements, " ID :", strconv.Itoa(playlist.Id))
 
