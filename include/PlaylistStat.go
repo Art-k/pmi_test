@@ -3,6 +3,7 @@ package include
 import (
 	"bytes"
 	"encoding/json"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -11,7 +12,7 @@ import (
 var CompareTaskIsActive bool
 
 type GetPlayListStats struct {
-	Model
+	gorm.Model
 	RunType               string
 	DurationSec           int
 	Status                string
@@ -21,8 +22,8 @@ type GetPlayListStats struct {
 }
 
 type NoticeInPlaylist struct {
-	Model
-	PLayListId int
+	gorm.Model
+	PlayListId int
 	NoticeId   int
 }
 
@@ -44,7 +45,7 @@ type PlayListStat struct {
 }
 
 type TPlayListStat struct {
-	Model
+	gorm.Model
 	TaskID string
 	PlayListStat
 }

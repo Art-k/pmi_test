@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +13,7 @@ import (
 )
 
 type ActivationHistory struct {
-	Model
+	gorm.Model
 	PlayListID int
 	NoticeId   int
 }
@@ -28,13 +28,24 @@ type Model struct {
 	// DeletedBy string
 }
 
-func (base *Model) BeforeCreate(scope *gorm.Scope) error {
-	// uuID, err := uuid.NewRandom()
-	// if err != nil {
-	// 	return err
-	// }
-	return scope.SetColumn("id", GetHash())
+func (base *Model) BeforeCreate(tx *gorm.DB) (err error) {
+	base.ID = GetHash()
+
+	//if u.Role == "admin" {
+	//	return errors.New("invalid role")
+	//}
+	return
 }
+
+//func (base *Model) BeforeCreate(scope *gorm.Scope) error {
+//func (base *Model) BeforeCreate(tx *gorm.DB) {
+//	// uuID, err := uuid.NewRandom()
+//	// if err != nil {
+//	// 	return err
+//	// }
+//	tx.Statement.SetColumn("id", GetHash())
+//	//return tx.Statement.SetColumn("id", GetHash())
+//}
 
 type PmiPlayList struct {
 	TypePlaylist
@@ -127,7 +138,7 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 	task.RunType = runType
 	task.Status = "In Progress"
 	Db.Create(&task)
-	WL("PLA | Task is created, task ID is " + task.ID)
+	WL("PLA | Task is created, task ID is " + strconv.Itoa(int(task.ID)))
 
 	CompareTaskIsActive = true
 	WL("PLA | Flag set to " + strconv.FormatBool(CompareTaskIsActive))
@@ -141,7 +152,7 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 
 		var messageToCMS []PlayListStat
 
-		U := os.Getenv("USER")
+		U := os.Getenv("PMI_USER")
 		P := os.Getenv("PASSWORD")
 
 		WL("PLA (" + tId + ") | Get Playlists")
@@ -200,8 +211,8 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 
 				Db.Where("p_lay_list_id = ?", pl.Id).
 					Where("notice_id = ?", notice.Id).Find(&noticeInPlaylist)
-				if noticeInPlaylist.ID == "" {
-					noticeInPlaylist.PLayListId = pl.Id
+				if noticeInPlaylist.ID == 0 {
+					noticeInPlaylist.PlayListId = pl.Id
 					noticeInPlaylist.NoticeId = notice.Id
 					Db.Create(&noticeInPlaylist)
 				}
@@ -327,9 +338,9 @@ func SaveNoticeChanges(runType string) GetPlayListStats {
 
 		CompareTaskIsActive = false
 
-		PostPlayListStatToCMS(task.ID, messageToCMS)
+		PostPlayListStatToCMS(strconv.Itoa(int(task.ID)), messageToCMS)
 
-	}(task.ID)
+	}(strconv.Itoa(int(task.ID)))
 
 	return task
 }

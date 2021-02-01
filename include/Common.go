@@ -1,8 +1,8 @@
 package include
 
 import (
-	"github.com/jinzhu/gorm"
 	guuid "github.com/satori/go.uuid"
+	"gorm.io/gorm"
 	"log"
 	"os"
 	"time"

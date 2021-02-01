@@ -3,7 +3,7 @@ package include
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +22,7 @@ type AbsentInJsonNotices struct {
 	gorm.Model
 	TestId          uint
 	NoticeId        int
-	Fixed           bool `gorm:"default:'false'"`
+	Fixed           bool
 	NoticeBeforeFix string
 	NoticeAfterFix  string
 }
@@ -44,7 +44,7 @@ func DoNoticesInJsonTest(run_type string) {
 	test.RunType = run_type
 	Db.Create(&test)
 
-	U := os.Getenv("USER")
+	U := os.Getenv("PMI_USER")
 	P := os.Getenv("PASSWORD")
 
 	WL("(NIJ) | Get All Playlists")
@@ -256,7 +256,7 @@ func DoNoticesInJsonTest(run_type string) {
 
 	}
 	WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Update test task in DB")
-	Db.Model(&Test{}).Update(&test)
+	Db.Model(&Test{}).Save(&test)
 	NoticeInJsonTestIsRunning.State = false
 	WL("NIJ (" + strconv.Itoa(int(test.ID)) + ") | Flag NoticeInJsonTestIsRunning set to " + strconv.FormatBool(NoticeInJsonTestIsRunning.State))
 }
@@ -265,7 +265,7 @@ func FixAbsentNotices(testId uint) {
 
 	// TODO добавить обработку того что может быть 2 одинаковых ID в одном тесте
 
-	U := os.Getenv("USER")
+	U := os.Getenv("PMI_USER")
 	P := os.Getenv("PASSWORD")
 
 	var noticesToFix []AbsentInJsonNotices
@@ -301,7 +301,7 @@ func UpdatePlaylists(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 
-		U := os.Getenv("USER")
+		U := os.Getenv("PMI_USER")
 		P := os.Getenv("PASSWORD")
 		taskHash := GetHash()
 		type DoUpdate struct {

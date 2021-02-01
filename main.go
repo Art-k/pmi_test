@@ -4,9 +4,10 @@ import (
 	inc "./include"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log"
 	"net/http"
 	"os"
@@ -24,23 +25,41 @@ func main() {
 		log.Fatal("ERROR loading .env file")
 	}
 
-	if os.Getenv("DB_PATH") == "" {
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold: time.Second, // Slow SQL threshold
+			LogLevel:      logger.Info, // Log level
+			Colorful:      true,        // Disable color
+		},
+	)
 
-		//inc.Db, inc.Err = gorm.Open("sqlite3", "pmi_backup_29-06-2020.db")
-		inc.Db, inc.Err = gorm.Open("sqlite3", "pmi.db")
-		if inc.Err != nil {
-			panic("ERROR failed to connect database")
-		}
+	inc.Db, inc.Err = gorm.Open(sqlite.Open(os.Getenv("DATABASE_PATH")+"pmi-1.db"), &gorm.Config{
+		Logger: newLogger,
+		//DisableForeignKeyConstraintWhenMigrating: true,
+	})
 
-	} else {
-
-		inc.Db, inc.Err = gorm.Open("sqlite3", os.Getenv("DB_PATH")+"pmi.db")
-		if inc.Err != nil {
-			panic("ERROR failed to connect database")
-		}
-
+	if inc.Err != nil {
+		log.Panic("[MAXTV HANDLE DB] ERROR failed to connect database", inc.Err)
 	}
-	defer inc.Db.Close()
+
+	//if os.Getenv("DB_PATH") == "" {
+	//
+	//	//inc.Db, inc.Err = gorm.Open("sqlite3", "pmi_backup_29-06-2020.db")
+	//	inc.Db, inc.Err = gorm.Open("sqlite3", "pmi.db")
+	//	if inc.Err != nil {
+	//		panic("ERROR failed to connect database")
+	//	}
+	//
+	//} else {
+	//
+	//	inc.Db, inc.Err = gorm.Open("sqlite3", os.Getenv("DB_PATH")+"pmi.db")
+	//	if inc.Err != nil {
+	//		panic("ERROR failed to connect database")
+	//	}
+	//
+	//}
+	//defer inc.Db.Close()
 
 	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -49,9 +68,9 @@ func main() {
 	defer f.Close()
 	log.SetOutput(f)
 
-	inc.Db.LogMode(false)
+	//inc.Db.LogMode(false)
 
-	inc.Db.AutoMigrate(
+	err = inc.Db.AutoMigrate(
 		&inc.Token{},
 		&inc.Test{},
 		&inc.TestError{},
@@ -78,6 +97,12 @@ func main() {
 		&inc.NoticeInPlaylist{},
 	)
 
+	if err != nil {
+		log.Panic(err)
+	}
+
+	//return
+
 	go func() {
 		if os.Getenv("MODE") == "DEBUG" {
 			inc.DoNoticesInJsonTest("DebugRun")
@@ -85,22 +110,22 @@ func main() {
 		} else {
 			//log.SetOutput(ioutil.Discard)
 
-			go func() {
-				inc.WL("== Set timer for Playlist Last Activity (PLA)==")
-				var interval int
-				interval_str := os.Getenv("SEND_STAT_INTERVAL")
-				if interval_str != "" {
-
-					interval, err = strconv.Atoi(interval_str)
-					if err != nil {
-						interval = 30
-					}
-				} else {
-					interval = 30
-				}
-				inc.WL("PLA | " + strconv.Itoa(interval) + " minutes interval")
-				inc.DoEvery(time.Duration(interval)*time.Minute, inc.GetPlayListStatByTimer)
-			}()
+			//go func() {
+			//	inc.WL("== Set timer for Playlist Last Activity (PLA)==")
+			//	var interval int
+			//	interval_str := os.Getenv("SEND_STAT_INTERVAL")
+			//	if interval_str != "" {
+			//
+			//		interval, err = strconv.Atoi(interval_str)
+			//		if err != nil {
+			//			interval = 30
+			//		}
+			//	} else {
+			//		interval = 30
+			//	}
+			//	inc.WL("PLA | " + strconv.Itoa(interval) + " minutes interval")
+			//	inc.DoEvery(time.Duration(interval)*time.Minute, inc.GetPlayListStatByTimer)
+			//}()
 
 			go func() {
 
@@ -118,21 +143,21 @@ func main() {
 				inc.DoEvery(time.Duration(interval)*time.Minute, inc.NoticesInJsonTest)
 			}()
 
-			go func() {
-				var interval int
-				interval_str := os.Getenv("HISTORY_INTERVAL")
-				if interval_str != "" {
-					interval, err = strconv.Atoi(interval_str)
-					if err != nil {
-						interval = 240
-					}
-				} else {
-					interval = 240
-				}
-
-				inc.DoEvery(time.Duration(interval)*time.Minute, inc.MakeHistory)
-
-			}()
+			//go func() {
+			//	var interval int
+			//	interval_str := os.Getenv("HISTORY_INTERVAL")
+			//	if interval_str != "" {
+			//		interval, err = strconv.Atoi(interval_str)
+			//		if err != nil {
+			//			interval = 240
+			//		}
+			//	} else {
+			//		interval = 240
+			//	}
+			//
+			//	inc.DoEvery(time.Duration(interval)*time.Minute, inc.MakeHistory)
+			//
+			//}()
 
 			go func() {
 				var interval int
@@ -150,19 +175,19 @@ func main() {
 
 			}()
 
-			go func() {
-				var interval int
-				interval_str := os.Getenv("LAST_ACTIVITY_INTERVAL")
-				if interval_str != "" {
-					interval, err = strconv.Atoi(interval_str)
-					if err != nil {
-						interval = 240
-					}
-				} else {
-					interval = 240
-				}
-				inc.DoEvery(time.Duration(interval)*time.Minute, inc.GetLastActivity)
-			}()
+			//go func() {
+			//	var interval int
+			//	interval_str := os.Getenv("LAST_ACTIVITY_INTERVAL")
+			//	if interval_str != "" {
+			//		interval, err = strconv.Atoi(interval_str)
+			//		if err != nil {
+			//			interval = 240
+			//		}
+			//	} else {
+			//		interval = 240
+			//	}
+			//	inc.DoEvery(time.Duration(interval)*time.Minute, inc.GetLastActivity)
+			//}()
 
 		}
 	}()

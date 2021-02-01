@@ -3,7 +3,7 @@ package include
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -205,7 +205,7 @@ type TypeNotice struct {
 	BackgroundColor  string       `json:"background_color"`
 	BackgroundFileId int64        `json:"background_file_id"`
 	CreatedBy        uint         `json:"createdBy"`
-	CreatedByUser    TypeUser     `json:"createdByUser"`
+	CreatedByUser    TypeUser     `gorm:"-" ;json:"createdByUser"`
 	CreatedAt        string       `json:"createdAt"`
 	EditedBy         uint         `json:"editedBy"`
 	EditedAt         string       `json:"editedAt"`
@@ -213,7 +213,7 @@ type TypeNotice struct {
 	DeletedBy        uint         `json:"deletedBy"`
 	DeletedAt        string       `json:"deletedAt"`
 	Status           string       `json:"status"`
-	Schedule         TypeSchedule `json:"schedule"`
+	Schedule         TypeSchedule `gorm:"-" ;json:"schedule"`
 }
 
 type TypePagination struct {
@@ -554,7 +554,7 @@ func AddNoticesDiffToDB(noticesDiff NoticesDiff) {
 	}
 	Db.Create(&Df)
 
-	var count int
+	var count int64
 	Db.Model(&TNoticesDiff{}).Count(&count)
 	if count > 3000000 {
 		//needToDeleteCount := count - 2000000

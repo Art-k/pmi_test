@@ -3,7 +3,8 @@ package include
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
+
 	"io/ioutil"
 	"log"
 	"net/http"

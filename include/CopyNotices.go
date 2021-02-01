@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/allegro/bigcache"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -60,7 +60,7 @@ func GetAllNoticesGroupBy(w http.ResponseWriter, r *http.Request) {
 
 	case "GET":
 
-		AllPlaylists := GetAllPlaylists(os.Getenv("USER"), os.Getenv("PASSWORD"))
+		AllPlaylists := GetAllPlaylists(os.Getenv("PMI_USER"), os.Getenv("PASSWORD"))
 
 		rows, err := Db.Table("destination_playlists").Select("playlist_id as Id, count(id) as Count").Group("playlist_id").Rows()
 		defer rows.Close()
@@ -101,7 +101,7 @@ func GetAllNoticesGroupBy(w http.ResponseWriter, r *http.Request) {
 func GetAllPlaylistsAsArrayOfId(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		U := os.Getenv("USER")
+		U := os.Getenv("PMI_USER")
 		P := os.Getenv("PASSWORD")
 		Playlists := GetAllPlaylists(U, P)
 		var PlaylistsResponse []int
@@ -147,7 +147,7 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 
 		var notices []DestinationPlaylists
 
-		U := os.Getenv("USER")
+		U := os.Getenv("PMI_USER")
 		P := os.Getenv("PASSWORD")
 		log.Println("Delete Task ", params["id"])
 		Db.Where("task_id = ?", params["id"]).Select("task_id", "playlist_id", "notices_id").Order("notices_id asc").Find(&notices)
@@ -168,12 +168,12 @@ func CopyNotesTask(w http.ResponseWriter, r *http.Request) {
 					} else {
 						notice.DeletedMessage = msg
 						notice.IsDeleted = true
-						Db.Model(&DestinationPlaylists{}).Where("id = ?", notice.ID).Update(&notice)
+						Db.Model(&DestinationPlaylists{}).Where("id = ?", notice.ID).Save(&notice)
 						//Db.Where("id = ?", notice.ID).Delete(DestinationPlaylists{})
 						var rec CopyNoticesToPlaylistsTask
 						Db.Where("id = ?", notice.TaskId).Find(&rec)
 						rec.Deleted++
-						Db.Model(&CopyNoticesToPlaylistsTask{}).Update(rec)
+						Db.Model(&CopyNoticesToPlaylistsTask{}).Save(&rec)
 						time.Sleep(250 * time.Millisecond)
 						log.Println("Notice is Deleted")
 					}
@@ -227,7 +227,7 @@ func FixPlaylists(w http.ResponseWriter, r *http.Request) {
 
 		go func() {
 
-			AllPlaylists := GetAllPlaylists(os.Getenv("USER"), os.Getenv("PASSWORD"))
+			AllPlaylists := GetAllPlaylists(os.Getenv("PMI_USER"), os.Getenv("PASSWORD"))
 
 			for ind, playlist := range AllPlaylists {
 
@@ -236,7 +236,7 @@ func FixPlaylists(w http.ResponseWriter, r *http.Request) {
 
 				//go func(plId int) {
 
-				AllNotices := GetAllNoticesByPlaylist(plId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+				AllNotices := GetAllNoticesByPlaylist(plId, os.Getenv("PMI_USER"), os.Getenv("PASSWORD"))
 
 				for indN, notice := range AllNotices {
 
@@ -311,7 +311,7 @@ func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
 	//task.TaskType = task_type
 	switch r.Method {
 	case "GET":
-		playLists := GetAllPlaylists(os.Getenv("USER"), os.Getenv("PASSWORD"))
+		playLists := GetAllPlaylists(os.Getenv("PMI_USER"), os.Getenv("PASSWORD"))
 
 		var currentPlaylist TypePlaylist
 		var notices []TypeNotice
@@ -322,7 +322,7 @@ func GetActiveCopy(w http.ResponseWriter, r *http.Request) {
 		for _, copiedEl := range copies {
 			if currentPlaylist.Id != copiedEl.PlaylistId {
 				fmt.Println("#### GET PLAYLIST ####", copiedEl.PlaylistId)
-				notices = GetAllNoticesByPlaylist(copiedEl.PlaylistId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+				notices = GetAllNoticesByPlaylist(copiedEl.PlaylistId, os.Getenv("PMI_USER"), os.Getenv("PASSWORD"))
 				//currentPlaylist = copiedEl.PlaylistId
 				for _, playlist := range playLists {
 					if copiedEl.PlaylistId == playlist.Id {
@@ -421,7 +421,7 @@ func CompareStatusesCopiedNotices(task_type string) {
 	for _, copiedEl := range copies {
 		if currentPlaylist != copiedEl.PlaylistId {
 			log.Println("#### GET PLAYLIST ####", copiedEl.PlaylistId)
-			notices = GetAllNoticesByPlaylist(copiedEl.PlaylistId, os.Getenv("USER"), os.Getenv("PASSWORD"))
+			notices = GetAllNoticesByPlaylist(copiedEl.PlaylistId, os.Getenv("PMI_USER"), os.Getenv("PASSWORD"))
 			currentPlaylist = copiedEl.PlaylistId
 		}
 		for _, notice := range notices {
@@ -429,7 +429,7 @@ func CompareStatusesCopiedNotices(task_type string) {
 				if copiedEl.CurrentStatus != notice.Status {
 					task.Changes++
 					copiedEl.CurrentStatus = notice.Status
-					Db.Model(&DestinationPlaylists{}).Update(copiedEl)
+					Db.Model(&DestinationPlaylists{}).Save(&copiedEl)
 
 					var his CopiedNoticesHistory
 					his.DestinationPlayListsId = copiedEl.ID
@@ -447,7 +447,7 @@ func CompareStatusesCopiedNotices(task_type string) {
 
 	task.Duration = int(time.Since(start).Seconds())
 
-	Db.Model(&ComparesTaskType{}).Update(&task)
+	Db.Model(&ComparesTaskType{}).Save(&task)
 	PostTelegrammMessage("Notices History Created " + strconv.Itoa(task.Changes) + " changes found. Task id = " + strconv.Itoa(int(task.ID)))
 	DoingHistory = false
 }
@@ -536,7 +536,7 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 		incTask.SourceNoticeId = incomingData.SourceNoticeId
 		incTask.SourceNotice = ""
 
-		U := os.Getenv("USER")
+		U := os.Getenv("PMI_USER")
 		P := os.Getenv("PASSWORD")
 
 		AllNotices := GetAllNoticesByPlaylist(incTask.SourcePlaylistId, U, P)
@@ -578,14 +578,14 @@ func CopyNotes(w http.ResponseWriter, r *http.Request) {
 					CopiedNotice = AssignPlaylists(pl_id, CopiedNotice.Id, Source_Notice.Schedule.Duration, incTask.ActivateFrom, incTask.ActivateTo, U, P)
 				}
 				destination.Notice = string(cn_str)
-				Db.Model(&DestinationPlaylists{}).Update(&destination)
+				Db.Model(&DestinationPlaylists{}).Save(&destination)
 				incTask.Copied++
 				time.Sleep(2 * time.Second)
-				Db.Model(&CopyNoticesToPlaylistsTask{}).Update(&incTask)
+				Db.Model(&CopyNoticesToPlaylistsTask{}).Save(&incTask)
 			}
 			incTask.Status = "Copy Completed"
 			incTask.Duration = int(time.Since(start).Seconds())
-			Db.Model(&CopyNoticesToPlaylistsTask{}).Update(&incTask)
+			Db.Model(&CopyNoticesToPlaylistsTask{}).Save(&incTask)
 			PostTelegrammMessage(strconv.Itoa(int(incTask.ID)) + " task COPY is completed successfully")
 
 		}(SourceNotice, incomingData.DestinationPlayLists)

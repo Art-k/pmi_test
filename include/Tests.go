@@ -3,7 +3,7 @@ package include
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"time"
